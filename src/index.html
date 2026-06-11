@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Pomobodo — a Pomodoro timer, todo list, and ambient video player in one app." />
+    <title>Pomobodo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- ═══════════════════════════════════════════
+         MOSAIC LAYOUT — No header, clean grid
+         Left 60%: video (top) + todos (bottom)
+         Right 40%: timer (full height)
+    ════════════════════════════════════════════ -->
+    <div id="app">
+
+      <!-- ── Main Mosaic Grid ── -->
+      <main id="mosaic-grid">
+
+        <!-- ▌LEFT COLUMN ▌ -->
+        <div id="left-column">
+
+          <!-- Video Player Panel -->
+          <section id="video-panel" aria-label="Video Player">
+            <div id="video-container">
+              <!-- Ambient video player (keyboard-isolated) -->
+              <video id="video-player" loop muted preload="metadata" tabindex="-1">
+                <source src="/assets/thedeep.mp4" type="video/mp4" />
+              </video>
+
+              <!-- Video selector icons — bottom-right -->
+              <div id="video-selector" aria-label="Choose ambient video">
+                <button class="video-num-btn active" data-video="0" title="The Deep">1</button>
+                <button class="video-num-btn" data-video="1" title="Doggo Renegade">2</button>
+                <button class="video-num-btn" data-video="2" title="Thank You">3</button>
+              </div>
+
+              <!-- Muted indicator -->
+              <div id="video-hint">🔇 Ambient · Plays with timer</div>
+            </div>
+          </section>
+
+          <!-- Todo List Panel -->
+          <section id="todo-panel" aria-label="Todo List">
+            <div id="todo-header">
+              <h2 id="todo-title">Tasks</h2>
+              <span id="todo-count" class="badge badge--neutral">0</span>
+            </div>
+
+            <div id="todo-input-row">
+              <input
+                id="todo-input"
+                type="text"
+                placeholder="Add a new task…"
+                autocomplete="off"
+                maxlength="120"
+              />
+              <button id="btn-add-task" aria-label="Add task">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
+            </div>
+
+            <ul id="todo-list" role="list">
+              <!-- Tasks injected by todos.js -->
+            </ul>
+
+            <div id="todo-empty" aria-live="polite">
+              <span class="empty-icon">✓</span>
+              <p>What to do, what to do...</p>
+            </div>
+          </section>
+
+        </div><!-- /left-column -->
+
+        <!-- ▌RIGHT COLUMN — TIMER ▌ -->
+        <aside id="timer-panel" aria-label="Pomodoro Timer">
+
+          <!-- Mode tabs: Work / Break -->
+          <div id="mode-tabs" role="tablist">
+            <button class="mode-tab active" id="tab-work" role="tab" data-mode="work">Work</button>
+            <button class="mode-tab" id="tab-break" role="tab" data-mode="break">Break</button>
+          </div>
+
+          <!-- Duration settings -->
+          <div id="duration-settings">
+            <div class="duration-field">
+              <label for="input-work-min">Work</label>
+              <input type="number" id="input-work-min" value="15" min="1" max="120" />
+              <span class="duration-unit">min</span>
+            </div>
+            <div class="duration-divider"></div>
+            <div class="duration-field">
+              <label for="input-break-min">Break</label>
+              <input type="number" id="input-break-min" value="5" min="1" max="60" />
+              <span class="duration-unit">min</span>
+            </div>
+          </div>
+
+          <!-- SVG Ring Progress -->
+          <div id="timer-ring-container" role="img" aria-label="Timer progress ring">
+            <svg id="timer-ring-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+              <!-- Background track -->
+              <circle id="ring-track" cx="100" cy="100" r="88" />
+              <!-- Progress arc -->
+              <circle id="ring-progress" cx="100" cy="100" r="88" />
+            </svg>
+
+            <!-- Time readout inside ring -->
+            <div id="timer-display">
+              <span id="timer-time">15:00</span>
+              <span id="timer-label">Focus</span>
+            </div>
+          </div>
+
+          <!-- Controls: Restart · Start/Pause · Skip -->
+          <div id="timer-controls">
+            <button id="btn-restart" class="ctrl-btn ctrl-btn--secondary" title="Restart (R)" aria-label="Restart timer">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.14"/></svg>
+            </button>
+            <button id="btn-start-pause" class="ctrl-btn ctrl-btn--primary" title="Start/Pause (Space)" aria-label="Start timer">
+              <svg id="icon-play" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              <svg id="icon-pause" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+            </button>
+            <button id="btn-skip" class="ctrl-btn ctrl-btn--secondary" title="Skip (S)" aria-label="Skip to next phase">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+            </button>
+          </div>
+
+          <!-- Stats: Work Done / Breaks Taken -->
+          <div id="timer-stats">
+            <div class="stat-item">
+              <span class="stat-value" id="stat-work-done">0</span>
+              <span class="stat-label">Work Done</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+              <span class="stat-value" id="stat-breaks-taken">0</span>
+              <span class="stat-label">Breaks Taken</span>
+            </div>
+          </div>
+
+          <!-- Daily counter -->
+          <div id="daily-stats">
+            <span id="daily-stats-text">Today: 0 work, 0 breaks</span>
+          </div>
+
+          <!-- Keyboard hints -->
+          <div id="shortcut-hints">
+            <kbd>Space</kbd> Pause
+            <kbd>R</kbd> Restart
+            <kbd>S</kbd> Skip
+          </div>
+
+        </aside><!-- /timer-panel -->
+
+      </main><!-- /mosaic-grid -->
+    </div><!-- /app -->
+
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>
