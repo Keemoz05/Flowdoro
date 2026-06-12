@@ -8,11 +8,11 @@ import { initTimer, timerEvents } from './timer.js';
 import { initTodos } from './todos.js';
 import { initVideo, playVideo, pauseVideo } from './video.js';
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
   // ── Initialize each module ──
   initTimer();
   initTodos();
-  initVideo();
+  await initVideo();
 
   // ── Connect timer events to video playback ──
   timerEvents.onStart = () => {

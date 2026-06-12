@@ -40,14 +40,47 @@
 
   /* Spacing */
   --gap:    8px;
-  --radius: 14px;
-  --radius-sm: 8px;
+
+  /* Border Radius — unified token scale */
+  --radius-lg:   16px;   /* Outer panels */
+  --radius-md:   10px;   /* Inputs, items, stats, tabs wrapper */
+  --radius-sm:    6px;   /* Inner: tabs, checkboxes, small inputs */
+  --radius-xs:    4px;   /* Micro: delete buttons, indicators */
+  --radius-full: 9999px; /* Pills & badges */
 
   /* Transitions */
   --transition-fast: 150ms ease;
   --transition-med:  300ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 600ms cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-elastic: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+
+/* ── @property — enable smooth custom-property transitions ── */
+@property --color-accent {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #FF451D;
+}
+@property --color-accent-glow {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: rgba(255,69,29,0.30);
+}
+@property --color-accent-dim {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: rgba(255,69,29,0.12);
+}
+@property --color-accent-hover {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #FF5C3A;
+}
+
+/* ── Icon size utilities ── */
+.icon-sm  { width: 14px; height: 14px; }
+.icon-md  { width: 18px; height: 18px; }
+.icon-lg  { width: 20px; height: 20px; }
 
 /* ── Reset ── */
 *, *::before, *::after {
@@ -68,6 +101,10 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   user-select: none;
+  transition: --color-accent var(--transition-slow),
+              --color-accent-glow var(--transition-slow),
+              --color-accent-dim var(--transition-slow),
+              --color-accent-hover var(--transition-slow);
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -86,7 +123,7 @@ body {
   display: inline-flex;
   align-items: center;
   padding: 2px 8px;
-  border-radius: 99px;
+  border-radius: var(--radius-full);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.05em;
@@ -142,9 +179,9 @@ body {
 ════════════════════════════════════════════════════════ */
 #video-panel {
   position: relative;
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  background: #000;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   min-height: 0;
 }
@@ -164,7 +201,315 @@ body {
   outline: none;
 }
 
-/* Video selector icons — bottom-right numbered buttons */
+/* ── YouTube Iframe ── */
+#youtube-player {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: none;
+  z-index: 1;
+}
+
+/* ── Settings Overlay ── */
+#video-settings-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.70);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  animation: overlay-in 0.25s ease;
+}
+
+#video-settings-overlay.hidden {
+  display: none;
+}
+
+@keyframes overlay-in {
+  from { opacity: 0; backdrop-filter: blur(0); }
+  to   { opacity: 1; backdrop-filter: blur(16px); }
+}
+
+#video-settings-inner {
+  width: 90%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#video-settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#video-settings-header h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  letter-spacing: 0.02em;
+}
+
+#btn-close-settings {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+#btn-close-settings:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--color-text-primary);
+}
+
+/* ── YouTube URL Input Row ── */
+#youtube-input-row {
+  display: flex;
+  gap: 6px;
+}
+
+#youtube-url-input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+  font-size: 12px;
+  padding: 7px 10px;
+  outline: none;
+  font-family: var(--font-sans);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+#youtube-url-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+#youtube-url-input:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px var(--color-accent-dim);
+}
+
+#btn-add-youtube {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+#btn-add-youtube:hover {
+  background: var(--color-accent-hover);
+  transform: translateY(-1px);
+}
+
+/* ── Video Library Grid ── */
+#video-library-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.video-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  position: relative;
+  transition: background var(--transition-fast), border-color var(--transition-fast), transform 0.2s var(--ease-elastic);
+  min-height: 64px;
+}
+
+.video-card:hover {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.video-card.active {
+  border-color: var(--color-accent);
+  background: var(--color-accent-dim);
+  box-shadow: 0 0 12px var(--color-accent-glow);
+}
+
+.video-card-icon {
+  font-size: 16px;
+  line-height: 1;
+  opacity: 0.7;
+}
+
+.video-card-icon--yt {
+  color: #FF0000;
+  opacity: 1;
+}
+
+.video-card-name {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  line-height: 1.3;
+}
+
+.video-card.active .video-card-name {
+  color: var(--color-accent);
+}
+
+.video-card-delete {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  border-radius: var(--radius-xs);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--transition-fast), color var(--transition-fast), background var(--transition-fast);
+}
+
+.video-card:hover .video-card-delete {
+  opacity: 1;
+}
+
+.video-card-delete:hover {
+  color: var(--color-accent);
+  background: rgba(255, 69, 29, 0.2);
+}
+
+/* ── Add Card ── */
+.video-card--add {
+  border-style: dashed;
+  border-color: rgba(255, 255, 255, 0.12);
+  background: transparent;
+}
+
+.video-card--add:hover {
+  border-color: var(--color-accent);
+  background: var(--color-accent-dim);
+}
+
+.video-card-add-icon {
+  font-size: 20px;
+  font-weight: 300;
+  color: var(--color-text-muted);
+  line-height: 1;
+  transition: color var(--transition-fast);
+}
+
+.video-card--add:hover .video-card-add-icon {
+  color: var(--color-accent);
+}
+
+.video-card--add:hover .video-card-name {
+  color: var(--color-accent);
+}
+
+/* ── Slot Counter ── */
+#video-slot-counter {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  text-align: center;
+  letter-spacing: 0.03em;
+}
+
+/* ── Settings Gear Button ── */
+#btn-video-settings {
+  position: absolute;
+  bottom: 10px;
+  left: 12px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-full);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  z-index: 5;
+  opacity: 0;
+  transition: opacity var(--transition-med), background var(--transition-fast), transform 0.25s var(--ease-elastic);
+}
+
+#video-panel:hover #btn-video-settings {
+  opacity: 1;
+}
+
+#btn-video-settings:hover {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+  transform: scale(1.08) rotate(30deg);
+}
+
+/* ── Volume Toggle Button ── */
+#btn-volume-toggle {
+  position: absolute;
+  bottom: 10px;
+  left: 46px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-full);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  z-index: 5;
+  opacity: 0;
+  transition: opacity var(--transition-med), background var(--transition-fast), transform 0.25s var(--ease-elastic);
+}
+
+#video-panel:hover #btn-volume-toggle {
+  opacity: 1;
+}
+
+#btn-volume-toggle:hover {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+  transform: scale(1.08);
+}
+
+/* Video selector icons — bottom-right dot buttons */
 #video-selector {
   position: absolute;
   bottom: 10px;
@@ -181,31 +526,34 @@ body {
 }
 
 .video-num-btn {
-  width: 28px;
-  height: 28px;
+  width: 10px;
+  height: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(255, 255, 255, 0.30);
   backdrop-filter: blur(10px);
-  color: rgba(255, 255, 255, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 6px;
-  font-family: var(--font-sans);
-  font-size: 11px;
-  font-weight: 600;
+  color: transparent;
+  font-size: 0;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  border-radius: var(--radius-full);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 0.25s var(--ease-elastic);
+  padding: 0;
+  overflow: hidden;
 }
 
 .video-num-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.3);
+  width: 14px;
+  height: 14px;
+  background: rgba(255, 255, 255, 0.40);
+  border-color: rgba(255, 255, 255, 0.5);
   transform: translateY(-1px);
 }
 
 .video-num-btn.active {
+  width: 14px;
+  height: 14px;
   background: var(--color-accent);
   color: #fff;
   border-color: var(--color-accent);
@@ -215,18 +563,20 @@ body {
 #video-hint {
   position: absolute;
   bottom: 10px;
-  left: 12px;
+  left: 80px;
   font-size: 11px;
   color: rgba(255,255,255,0.35);
   pointer-events: none;
   letter-spacing: 0.02em;
   opacity: 0;
   transition: opacity var(--transition-med);
+  z-index: 5;
 }
 
 #video-panel:hover #video-hint {
   opacity: 1;
 }
+
 
 /* ═══════════════════════════════════════════════════════
    TODO PANEL
@@ -234,7 +584,7 @@ body {
 #todo-panel {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   padding: 12px 14px 10px;
   display: flex;
   flex-direction: column;
@@ -463,7 +813,7 @@ body {
 #timer-panel {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -479,7 +829,7 @@ body {
   display: flex;
   gap: 4px;
   background: var(--color-surface-2);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   padding: 3px;
   width: 100%;
   max-width: 220px;
@@ -494,7 +844,7 @@ body {
   letter-spacing: 0.04em;
   background: transparent;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   color: var(--color-text-secondary);
   cursor: pointer;
   transition: background var(--transition-fast), color var(--transition-fast);
@@ -518,7 +868,7 @@ body {
   gap: 10px;
   padding: 6px 12px;
   background: var(--color-surface-2);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
   width: 100%;
   max-width: 220px;
@@ -545,7 +895,7 @@ body {
   padding: 3px 4px;
   background: var(--color-surface-3);
   border: 1px solid var(--color-border);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   color: var(--color-text-primary);
   font-family: var(--font-mono);
   font-size: 12px;
@@ -661,6 +1011,16 @@ body {
   50%       { opacity: 0.75; }
 }
 
+/* Ring glow pulse while running */
+#timer-panel.running #ring-progress {
+  animation: ring-glow 2s ease-in-out infinite;
+}
+
+@keyframes ring-glow {
+  0%, 100% { filter: drop-shadow(0 0 8px var(--color-accent-glow)); }
+  50%      { filter: drop-shadow(0 0 18px var(--color-accent-glow)); }
+}
+
 /* ── Timer Controls ── */
 #timer-controls {
   display: flex;
@@ -675,7 +1035,9 @@ body {
   border: none;
   cursor: pointer;
   border-radius: 50%;
-  transition: background var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+  transition: transform 0.25s var(--ease-elastic),
+              background var(--transition-fast),
+              box-shadow 0.25s ease;
 }
 
 .ctrl-btn--primary {
@@ -721,7 +1083,7 @@ body {
   gap: 14px;
   padding: 8px 12px;
   background: var(--color-surface-2);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
   width: 100%;
   max-width: 220px;
@@ -762,6 +1124,18 @@ body {
   width: 100%;
   max-width: 220px;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.daily-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  opacity: 0.7;
 }
 
 #daily-stats-text {
@@ -836,7 +1210,7 @@ body.mode-break #ring-progress {
   background: var(--color-surface-3);
   color: var(--color-text-primary);
   border: 1px solid var(--color-border-hover);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   padding: 8px 16px;
   font-size: 13px;
   font-weight: 500;
