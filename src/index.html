@@ -30,7 +30,7 @@
               <!-- Ambient video player (keyboard-isolated) -->
               <video id="video-player" loop muted preload="metadata" tabindex="-1"></video>
               <!-- YouTube iframe (hidden by default) -->
-              <iframe id="youtube-player" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+              <iframe id="youtube-player" allow="autoplay; encrypted-media" allowfullscreen referrerpolicy="origin"></iframe>
 
               <!-- Settings overlay (hidden by default) -->
               <div id="video-settings-overlay" class="hidden">
@@ -124,13 +124,11 @@
             <div class="duration-field">
               <label for="input-work-min">Work</label>
               <input type="number" id="input-work-min" value="15" min="1" max="120" />
-              <span class="duration-unit">min</span>
             </div>
             <div class="duration-divider"></div>
             <div class="duration-field">
               <label for="input-break-min">Break</label>
               <input type="number" id="input-break-min" value="5" min="1" max="60" />
-              <span class="duration-unit">min</span>
             </div>
           </div>
 

@@ -2,7 +2,6 @@
  * video.js — Ambient Video Player (Redesigned with Library + YouTube)
  *
  * Supports:
- *  - Bundled videos (shipped with the app)
  *  - User-imported local videos (copied to $APPDATA/videos/)
  *  - YouTube URL embeds (iframe with postMessage control)
  *
@@ -12,7 +11,7 @@
  */
 
 import {
-  getLibrary, seedDefaults,
+  getLibrary,
   addLocalVideo, addYouTubeVideo, removeVideo,
   getVolumeMuted, setVolumeMuted,
   getActiveVideoId, setActiveVideoId,
@@ -58,9 +57,6 @@ async function resolveLibraryPath() {
 //  Build asset URL for a library entry
 // ─────────────────────────────────────────────────────
 function getVideoSrc(entry) {
-  if (entry.type === 'bundled') {
-    return entry.src;
-  }
   if (entry.type === 'local') {
     // Use Tauri's convertFileSrc for files in $APPDATA/videos/
     if (window.__TAURI__ && libraryPath) {
@@ -80,12 +76,17 @@ function loadEntry(entry) {
   currentEntry = entry;
   setActiveVideoId(entry.id);
 
+  // Force volume to off when loading a video
+  isMuted = true;
+  setVolumeMuted(true);
+  updateVolumeUI();
+
   if (entry.type === 'youtube') {
     // Switch to YouTube iframe
     elVideo.style.display = 'none';
     elVideo.pause();
     elYoutube.style.display = 'block';
-    const embedUrl = `https://www.youtube-nocookie.com/embed/${entry.youtubeId}?autoplay=0&mute=${isMuted ? 1 : 0}&loop=1&playlist=${entry.youtubeId}&enablejsapi=1&modestbranding=1&rel=0&controls=0`;
+    const embedUrl = `https://www.youtube.com/embed/${entry.youtubeId}?autoplay=0&mute=${isMuted ? 1 : 0}&loop=1&playlist=${entry.youtubeId}&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}&rel=0&controls=0`;
     elYoutube.src = embedUrl;
     ytReady = false;
     // YouTube iframe fires 'onReady' via postMessage once loaded
@@ -426,11 +427,9 @@ export async function initVideo() {
   // Resolve library path from Tauri
   await resolveLibraryPath();
 
-  // Seed defaults on first launch
-  seedDefaults();
-
-  // Load mute preference
-  isMuted = getVolumeMuted();
+  // Force volume to off on app open
+  isMuted = true;
+  setVolumeMuted(true);
   updateVolumeUI();
 
   // Load the previously active video, or first in library

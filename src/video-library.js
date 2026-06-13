@@ -11,26 +11,23 @@ const VOLUME_KEY = 'pomobodo-video-muted';
 const ACTIVE_KEY = 'pomobodo-active-video';
 const MAX_VIDEOS = 8;
 
-// ── Default bundled videos (seeded on first launch) ──
-const DEFAULT_VIDEOS = [
-  { id: 'default-1', name: 'The Deep',        type: 'bundled', src: '/assets/thedeep.mp4' },
-  { id: 'default-2', name: 'Doggo Renegade',  type: 'bundled', src: '/assets/videos/doggo-renegade.mp4' },
-  { id: 'default-3', name: 'Thank You',       type: 'bundled', src: '/assets/videos/thankyou.mp4' },
-];
-
 // ─────────────────────────────────────────────────────
 //  Library CRUD
 // ─────────────────────────────────────────────────────
 
 /**
  * Get the full video library array.
- * @returns {Array<{id: string, name: string, type: 'bundled'|'local'|'youtube', src?: string, filename?: string, youtubeId?: string}>}
+ * @returns {Array<{id: string, name: string, type: 'local'|'youtube', filename?: string, youtubeId?: string}>}
  */
 export function getLibrary() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
-    return JSON.parse(raw);
+    const library = JSON.parse(raw);
+    if (Array.isArray(library)) {
+      return library.filter(v => v.type !== 'bundled');
+    }
+    return [];
   } catch {
     return [];
   }
@@ -41,15 +38,6 @@ export function getLibrary() {
  */
 export function saveLibrary(library) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(library));
-}
-
-/**
- * Seed the default bundled videos if the library is empty.
- */
-export function seedDefaults() {
-  if (getLibrary().length === 0) {
-    saveLibrary([...DEFAULT_VIDEOS]);
-  }
 }
 
 /**
