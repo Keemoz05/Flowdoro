@@ -344,6 +344,8 @@ body {
   position: relative;
   transition: background var(--transition-fast), border-color var(--transition-fast), transform 0.2s var(--ease-elastic);
   min-height: 64px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .video-card:hover {
@@ -376,7 +378,7 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 100%;
+  width: 100%;
   line-height: 1.3;
 }
 

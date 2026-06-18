@@ -192,10 +192,21 @@ function getLabelForMode(mode) {
   return mode === 'work' ? 'Focus' : 'Break';
 }
 
+function checkDailyReset() {
+  const today = new Date().toDateString();
+  if (state.todayDate && state.todayDate !== today) {
+    state.todayWork = 0;
+    state.todayBreaks = 0;
+    state.todayDate = today;
+    saveStats();
+  }
+}
+
 // ─────────────────────────────────────────────────────
 //  DOM update
 // ─────────────────────────────────────────────────────
 function render() {
+  checkDailyReset();
   elTime.textContent  = formatTime(state.timeRemaining);
   elLabel.textContent = getLabelForMode(state.mode);
 
@@ -204,11 +215,12 @@ function render() {
   elRing.style.strokeDashoffset = offset;
 
   // Stats
-  elStatWork.textContent   = state.workCount;
-  elStatBreaks.textContent = state.breakCount;
+  // Big stat boxes = today's sessions
+  elStatWork.textContent   = state.todayWork;
+  elStatBreaks.textContent = state.todayBreaks;
 
-  // Daily stats
-  elDailyStats.textContent = `Today: ${state.todayWork} work, ${state.todayBreaks} breaks`;
+  // Footer = all-time totals
+  elDailyStats.textContent = `All time: ${state.workCount} work, ${state.breakCount} breaks`;
 
   // Body class for break accent
   document.body.classList.toggle('mode-break', state.mode !== 'work');
@@ -300,6 +312,8 @@ function handleComplete() {
   clearInterval(state.intervalId);
   state.intervalId = null;
   state.isRunning  = false;
+
+  checkDailyReset();
 
   const completedMode = state.mode;
 
