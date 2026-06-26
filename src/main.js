@@ -7,11 +7,13 @@
 import { initTimer, timerEvents } from './timer.js';
 import { initTodos } from './todos.js';
 import { initVideo, playVideo, pauseVideo } from './video.js';
+import { initProgress } from './progress.js';
 
 window.addEventListener('DOMContentLoaded', async () => {
   // ── Initialize each module ──
   initTimer();
   initTodos();
+  initProgress();
   await initVideo();
 
   // ── Connect timer events to video playback ──

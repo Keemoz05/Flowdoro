@@ -7,8 +7,9 @@
  * Daily stats: auto-reset at midnight
  */
 
+import { addWorkSecond, saveProgressNow } from './progress.js';
+
 const RING_CIRCUMFERENCE = 553; // 2π × 88px (SVG circle radius)
-const STORAGE_KEY = 'pomobodo_stats';
 const SETTINGS_KEY = 'pomobodo_settings';
 
 // ── Default durations (in minutes) ──
@@ -24,12 +25,6 @@ let state = {
   isRunning:      false,
   waitingToStart: false,      // "Ready to focus?" state after break ends
   intervalId:     null,
-  // Persisted counters
-  workCount:      0,
-  breakCount:     0,
-  todayWork:      0,
-  todayBreaks:    0,
-  todayDate:      '',
 };
 
 // ── DOM refs ──
@@ -42,9 +37,6 @@ const elIconPlay    = document.getElementById('icon-play');
 const elIconPause   = document.getElementById('icon-pause');
 const elBtnRestart  = document.getElementById('btn-restart');
 const elBtnSkip     = document.getElementById('btn-skip');
-const elStatWork    = document.getElementById('stat-work-done');
-const elStatBreaks  = document.getElementById('stat-breaks-taken');
-const elDailyStats  = document.getElementById('daily-stats-text');
 const elModeTabs    = document.querySelectorAll('.mode-tab');
 const elWorkInput   = document.getElementById('input-work-min');
 const elBreakInput  = document.getElementById('input-break-min');
@@ -56,42 +48,10 @@ export const timerEvents = {
   onComplete: null,  // (mode) => void
 };
 
+
 // ─────────────────────────────────────────────────────
-//  Persistence
+//  Settings persistence
 // ─────────────────────────────────────────────────────
-function loadStats() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-    const data = JSON.parse(raw);
-    const today = new Date().toDateString();
-
-    state.workCount  = data.workCount  || 0;
-    state.breakCount = data.breakCount || 0;
-
-    // Daily reset check
-    if (data.todayDate === today) {
-      state.todayWork   = data.todayWork   || 0;
-      state.todayBreaks = data.todayBreaks || 0;
-    } else {
-      state.todayWork   = 0;
-      state.todayBreaks = 0;
-    }
-    state.todayDate = today;
-  } catch (_) {}
-}
-
-function saveStats() {
-  const data = {
-    workCount:  state.workCount,
-    breakCount: state.breakCount,
-    todayWork:  state.todayWork,
-    todayBreaks: state.todayBreaks,
-    todayDate:  state.todayDate || new Date().toDateString(),
-  };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-}
-
 function loadSettings() {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
@@ -192,35 +152,18 @@ function getLabelForMode(mode) {
   return mode === 'work' ? 'Focus' : 'Break';
 }
 
-function checkDailyReset() {
-  const today = new Date().toDateString();
-  if (state.todayDate && state.todayDate !== today) {
-    state.todayWork = 0;
-    state.todayBreaks = 0;
-    state.todayDate = today;
-    saveStats();
-  }
-}
+
 
 // ─────────────────────────────────────────────────────
 //  DOM update
 // ─────────────────────────────────────────────────────
 function render() {
-  checkDailyReset();
   elTime.textContent  = formatTime(state.timeRemaining);
   elLabel.textContent = getLabelForMode(state.mode);
 
   // Ring progress
   const offset = getRingOffset(state.timeRemaining, state.totalTime);
   elRing.style.strokeDashoffset = offset;
-
-  // Stats
-  // Big stat boxes = today's sessions
-  elStatWork.textContent   = state.todayWork;
-  elStatBreaks.textContent = state.todayBreaks;
-
-  // Footer = all-time totals
-  elDailyStats.textContent = `All time: ${state.workCount} work, ${state.breakCount} breaks`;
 
   // Body class for break accent
   document.body.classList.toggle('mode-break', state.mode !== 'work');
@@ -257,6 +200,9 @@ function tick() {
     return;
   }
   state.timeRemaining--;
+  if (state.mode === 'work') {
+    addWorkSecond();
+  }
   render();
 }
 
@@ -277,6 +223,7 @@ export function pauseTimer() {
   state.isRunning = false;
   clearInterval(state.intervalId);
   state.intervalId = null;
+  saveProgressNow();
   render();
   if (timerEvents.onPause) timerEvents.onPause();
 }
@@ -313,25 +260,19 @@ function handleComplete() {
   state.intervalId = null;
   state.isRunning  = false;
 
-  checkDailyReset();
-
   const completedMode = state.mode;
 
   // Play sound
   playNotificationSound();
 
-  // Increment counters on completion
+  // Send notification
   if (completedMode === 'work') {
-    state.workCount++;
-    state.todayWork++;
     sendNotification('Work session complete!', 'Time for a break. 🎉');
   } else {
-    state.breakCount++;
-    state.todayBreaks++;
     sendNotification('Break over!', 'Ready to focus? 🍅');
   }
-  state.todayDate = new Date().toDateString();
-  saveStats();
+
+  saveProgressNow();
 
   if (timerEvents.onComplete) timerEvents.onComplete(completedMode);
 
@@ -411,8 +352,7 @@ export function showToast(message) {
 //  Event listeners
 // ─────────────────────────────────────────────────────
 export function initTimer() {
-  // Load persisted data
-  loadStats();
+  // Load persisted settings
   loadSettings();
 
   // Request notification permission
@@ -421,7 +361,6 @@ export function initTimer() {
   // Set initial timer from settings
   state.totalTime     = getWorkSeconds();
   state.timeRemaining = state.totalTime;
-  state.todayDate     = new Date().toDateString();
 
   // Button listeners
   elBtnSP.addEventListener('click', toggleTimer);

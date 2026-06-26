@@ -28,7 +28,7 @@
           <section id="video-panel" aria-label="Video Player">
             <div id="video-container">
               <!-- Ambient video player (keyboard-isolated) -->
-              <video id="video-player" loop muted preload="metadata" tabindex="-1"></video>
+              <video id="video-player" loop muted preload="none" tabindex="-1"></video>
               <!-- YouTube iframe (hidden by default) -->
               <iframe id="youtube-player" allow="autoplay; encrypted-media" allowfullscreen referrerpolicy="origin"></iframe>
 
@@ -110,8 +110,11 @@
 
         </div><!-- /left-column -->
 
-        <!-- ▌RIGHT COLUMN — TIMER ▌ -->
-        <aside id="timer-panel" aria-label="Pomodoro Timer">
+        <!-- ▌RIGHT COLUMN ▌ -->
+        <div id="right-column">
+
+          <!-- Timer Panel -->
+          <aside id="timer-panel" aria-label="Pomodoro Timer">
 
           <!-- Mode tabs: Work / Break -->
           <div id="mode-tabs" role="tablist">
@@ -162,29 +165,54 @@
             </button>
           </div>
 
-          <!-- Stats: Work Done / Breaks Taken -->
-          <div id="timer-stats">
-            <div class="stat-item">
-              <span class="stat-value" id="stat-work-done">0</span>
-              <span class="stat-label">Today's Work</span>
+          </aside><!-- /timer-panel -->
+
+          <!-- Daily Progress Widget -->
+          <section id="daily-progress" aria-label="Daily Progress">
+
+
+            <div id="progress-body">
+              <div class="progress-stat" id="stat-yesterday">
+                <span class="progress-stat-label">YESTERDAY</span>
+                <span class="progress-stat-value" id="yesterday-value">0</span>
+                <span class="progress-stat-unit">MINUTES</span>
+              </div>
+
+              <div id="progress-ring-wrapper">
+                <button class="btn-goal-adjust" id="btn-dec-goal" aria-label="Decrease daily goal" title="Decrease goal">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </button>
+                
+                <div id="progress-ring-container">
+                  <svg id="progress-ring-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <circle id="progress-ring-track" cx="50" cy="50" r="44" />
+                    <circle id="progress-ring-fill" cx="50" cy="50" r="44" />
+                  </svg>
+                  <div id="progress-ring-inner">
+                    <span id="progress-goal-label">DAILY GOAL</span>
+                    <span id="progress-goal-value">1</span>
+                    <span id="progress-goal-unit">HOUR</span>
+                  </div>
+                </div>
+
+                <button class="btn-goal-adjust" id="btn-inc-goal" aria-label="Increase daily goal" title="Increase goal">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </button>
+              </div>
+
+              <div class="progress-stat" id="stat-streak">
+                <span class="progress-stat-label">STREAK</span>
+                <span class="progress-stat-value" id="streak-value">0</span>
+                <span class="progress-stat-unit">DAYS</span>
+              </div>
             </div>
-            <div class="stat-divider"></div>
-            <div class="stat-item">
-              <span class="stat-value" id="stat-breaks-taken">0</span>
-              <span class="stat-label">Today's Breaks</span>
+
+            <div id="progress-completed">
+              Completed: <span id="completed-minutes">0</span> <span id="completed-unit">minutes</span>
             </div>
-          </div>
+          </section>
 
-          <!-- Daily counter -->
-          <div id="daily-stats">
-            <svg class="daily-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
-            </svg>
-            <span id="daily-stats-text">All time: 0 work, 0 breaks</span>
-          </div>
-
-
-        </aside><!-- /timer-panel -->
+        </div><!-- /right-column -->
 
       </main><!-- /mosaic-grid -->
     </div><!-- /app -->

@@ -39,6 +39,8 @@ let currentEntry = null;   // Currently playing library entry
 let isMuted = true;
 let ytReady = false;       // YouTube iframe API ready
 let libraryPath = '';      // Absolute path to $APPDATA/videos/
+let shouldBePlaying = false;  // Whether the timer has requested video playback
+let ytDeferred = false;       // Whether YouTube iframe load is deferred until play
 
 // ─────────────────────────────────────────────────────
 //  Resolve library path from Tauri backend
@@ -86,16 +88,26 @@ function loadEntry(entry) {
     elVideo.style.display = 'none';
     elVideo.pause();
     elYoutube.style.display = 'block';
-    const embedUrl = `https://www.youtube.com/embed/${entry.youtubeId}?autoplay=0&mute=${isMuted ? 1 : 0}&loop=1&playlist=${entry.youtubeId}&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}&rel=0&controls=0`;
-    elYoutube.src = embedUrl;
     ytReady = false;
-    // YouTube iframe fires 'onReady' via postMessage once loaded
+
+    if (shouldBePlaying) {
+      // Timer is already running — load YouTube immediately with autoplay
+      const embedUrl = `https://www.youtube.com/embed/${entry.youtubeId}?autoplay=1&mute=${isMuted ? 1 : 0}&loop=1&playlist=${entry.youtubeId}&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}&rel=0&controls=0`;
+      elYoutube.src = embedUrl;
+      ytDeferred = false;
+    } else {
+      // Timer not running — defer iframe load to save GPU/RAM (~50-120MB)
+      elYoutube.src = 'about:blank';
+      ytDeferred = true;
+    }
+
     elHint.textContent = `${isMuted ? '🔇' : '🔊'} YouTube · Ambient`;
   } else {
     // Switch to local <video>
     elYoutube.style.display = 'none';
-    elYoutube.src = '';
+    elYoutube.src = 'about:blank';  // Properly unload YouTube renderer process
     elVideo.style.display = 'block';
+    ytDeferred = false;
     const src = getVideoSrc(entry);
     if (src) {
       elVideo.src = src;
@@ -151,13 +163,15 @@ function toggleVolume() {
   updateVolumeUI();
 
   if (currentEntry && currentEntry.type === 'youtube') {
-    // YouTube: send postMessage to mute/unmute
-    try {
-      const cmd = isMuted
-        ? '{"event":"command","func":"mute","args":""}'
-        : '{"event":"command","func":"unMute","args":""}';
-      elYoutube.contentWindow.postMessage(cmd, '*');
-    } catch (e) { /* cross-origin safety */ }
+    // YouTube: send postMessage to mute/unmute (only if iframe is loaded)
+    if (!ytDeferred) {
+      try {
+        const cmd = isMuted
+          ? '{"event":"command","func":"mute","args":""}'
+          : '{"event":"command","func":"unMute","args":""}';
+        elYoutube.contentWindow.postMessage(cmd, '*');
+      } catch (e) { /* cross-origin safety */ }
+    }
   } else {
     elVideo.muted = isMuted;
   }
@@ -393,13 +407,24 @@ function blockVideoKeyboard(e) {
 // ─────────────────────────────────────────────────────
 export function playVideo() {
   if (!currentEntry) return;
+  shouldBePlaying = true;
+
+  // Don't start video playback while window is hidden (save GPU/RAM)
+  if (document.hidden) return;
 
   if (currentEntry.type === 'youtube') {
-    try {
-      elYoutube.contentWindow.postMessage(
-        '{"event":"command","func":"playVideo","args":""}', '*'
-      );
-    } catch (e) { /* cross-origin */ }
+    if (ytDeferred) {
+      // First play — load the YouTube iframe now with autoplay
+      const embedUrl = `https://www.youtube.com/embed/${currentEntry.youtubeId}?autoplay=1&mute=${isMuted ? 1 : 0}&loop=1&playlist=${currentEntry.youtubeId}&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}&rel=0&controls=0`;
+      elYoutube.src = embedUrl;
+      ytDeferred = false;
+    } else {
+      try {
+        elYoutube.contentWindow.postMessage(
+          '{"event":"command","func":"playVideo","args":""}', '*'
+        );
+      } catch (e) { /* cross-origin */ }
+    }
   } else {
     elVideo.muted = isMuted;
     elVideo.play().catch(() => {});
@@ -408,13 +433,16 @@ export function playVideo() {
 
 export function pauseVideo() {
   if (!currentEntry) return;
+  shouldBePlaying = false;
 
   if (currentEntry.type === 'youtube') {
-    try {
-      elYoutube.contentWindow.postMessage(
-        '{"event":"command","func":"pauseVideo","args":""}', '*'
-      );
-    } catch (e) { /* cross-origin */ }
+    if (!ytDeferred) {
+      try {
+        elYoutube.contentWindow.postMessage(
+          '{"event":"command","func":"pauseVideo","args":""}', '*'
+        );
+      } catch (e) { /* cross-origin */ }
+    }
   } else {
     elVideo.pause();
   }
@@ -477,4 +505,45 @@ export async function initVideo() {
   elVideo.addEventListener('keydown', blockVideoKeyboard);
   elVideo.addEventListener('keyup', blockVideoKeyboard);
   elVideo.setAttribute('tabindex', '-1');
+
+  // ── Pause/resume video on window visibility change (GPU #1 + RAM #2) ──
+  // Frees GPU decode resources and video buffer RAM while window is hidden.
+  // Timer continues running — only the video playback pauses.
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      // Window minimized/hidden — pause video to free GPU/RAM
+      if (currentEntry) {
+        if (currentEntry.type === 'youtube' && !ytDeferred) {
+          try {
+            elYoutube.contentWindow.postMessage(
+              '{"event":"command","func":"pauseVideo","args":""}', '*'
+            );
+          } catch (e) { /* cross-origin */ }
+        } else if (currentEntry.type !== 'youtube') {
+          elVideo.pause();
+        }
+      }
+    } else {
+      // Window visible again — resume video if timer is still running
+      if (shouldBePlaying && currentEntry) {
+        if (currentEntry.type === 'youtube') {
+          if (ytDeferred) {
+            // YouTube was deferred and timer started while hidden — load now
+            const embedUrl = `https://www.youtube.com/embed/${currentEntry.youtubeId}?autoplay=1&mute=${isMuted ? 1 : 0}&loop=1&playlist=${currentEntry.youtubeId}&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}&rel=0&controls=0`;
+            elYoutube.src = embedUrl;
+            ytDeferred = false;
+          } else {
+            try {
+              elYoutube.contentWindow.postMessage(
+                '{"event":"command","func":"playVideo","args":""}', '*'
+              );
+            } catch (e) { /* cross-origin */ }
+          }
+        } else {
+          elVideo.muted = isMuted;
+          elVideo.play().catch(() => {});
+        }
+      }
+    }
+  });
 }
