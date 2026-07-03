@@ -1,8 +1,8 @@
-# Pomobodo
+<h1 align="center">Pomobodo</h1>
 
 ---
 
-Minimalist desktop Pomodoro. Distraction-free task list. Ambient video backgrounds.
+<p align="center">Minimalist desktop Pomodoro. To-do list. Custom video backgrounds.</p>
 
 ![alt text](image.png)
 
