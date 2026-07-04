@@ -9,7 +9,7 @@
 ### What it is
 Pomobodo is a lightweight desktop productivity application built using Tauri, HTML, CSS, and JavaScript. It combines three productivity pillars—a Pomodoro timer, a task manager, and ambient video loops—into a single distraction-free mosaic layout.
 
-### Explanation of its features
+### Features
 - **Customizable Pomodoro Timer**: Switch between focus and break modes, customize duration times, and track progress using an interactive SVG progress ring.
 - **Built-in Task Manager**: Organize and check off items directly in the dashboard, complete with task counters and empty-state feedback.
 - **Ambient Video Player**: Load and control ambient looping videos or customize your backdrop using a built-in library slot manager with support for custom YouTube URLs.
