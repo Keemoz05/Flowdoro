@@ -7,7 +7,7 @@
 ![alt text](image.png)
 
 ### What it is
-Pomobodo is a lightweight desktop productivity application built using Tauri, HTML, CSS, and JavaScript. Pretty simple generic Pomodoro application, made to help my lazy ahh to study.
+Pomobodo is a lightweight desktop productivity application built using Tauri, HTML, CSS, and JavaScript. Pretty simple generic Pomodoro application, made to help bodo people like me to study. 
 
 ### Features
 - **Customizable Pomodoro Timer**: Switch between focus and break modes and customize duration times.
@@ -25,3 +25,5 @@ Pomobodo is a lightweight desktop productivity application built using Tauri, HT
    ```powershell
    npm run tauri dev
    ```
+
+Oh really? Let's see you come up with a better app name then.
