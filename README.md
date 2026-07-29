@@ -1,4 +1,4 @@
-<h1 align="center">Pomobodo</h1>
+<h1 align="center">Flowdoro</h1>
 
 ---
 
@@ -7,7 +7,7 @@
 ![alt text](image.png)
 
 ### What it is
-Pomobodo is a lightweight desktop productivity application built using Tauri, HTML, CSS, and JavaScript. Pretty simple generic Pomodoro application, made to help bodo people like me to study. 
+Flowdoro is a lightweight desktop productivity application built using Tauri, HTML, CSS, and JavaScript. Pretty simple generic Pomodoro application, made to help bodo people like me to study. 
 
 ### Features
 - **Customizable Pomodoro Timer**: Switch between focus and break modes and customize duration times.
