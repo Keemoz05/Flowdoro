@@ -26,4 +26,3 @@ Flowdoro is a lightweight desktop productivity application built using Tauri, HT
    npm run tauri dev
    ```
 
-Oh really? Let's see you come up with a better app name then.
