@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    pomobodo_tauri_lib::run()
+    flowdoro_lib::run()
 }

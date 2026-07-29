@@ -6,10 +6,26 @@
  * Supports local (.mp4, .webm) and YouTube URL entries.
  */
 
-const STORAGE_KEY = 'pomobodo-video-library';
-const VOLUME_KEY = 'pomobodo-video-muted';
-const ACTIVE_KEY = 'pomobodo-active-video';
+const STORAGE_KEY = 'flowdoro-video-library';
+const VOLUME_KEY = 'flowdoro-video-muted';
+const ACTIVE_KEY = 'flowdoro-active-video';
 const MAX_VIDEOS = 8;
+
+// Migrate from old storage keys (one-time)
+(() => {
+  const migrations = [
+    ['pomobodo-video-library', STORAGE_KEY],
+    ['pomobodo-video-muted', VOLUME_KEY],
+    ['pomobodo-active-video', ACTIVE_KEY],
+  ];
+  migrations.forEach(([oldKey, newKey]) => {
+    const old = localStorage.getItem(oldKey);
+    if (old !== null && !localStorage.getItem(newKey)) {
+      localStorage.setItem(newKey, old);
+      localStorage.removeItem(oldKey);
+    }
+  });
+})();
 
 // ─────────────────────────────────────────────────────
 //  Library CRUD
@@ -61,9 +77,10 @@ export function addLocalVideo(name, filename) {
 /**
  * Add a YouTube video to the library.
  * @param {string} url - YouTube watch/short/embed URL
+ * @param {string} [name] - Optional display name (fetched from oEmbed)
  * @returns {{ok: boolean, error?: string, entry?: object}}
  */
-export function addYouTubeVideo(url) {
+export function addYouTubeVideo(url, name) {
   const library = getLibrary();
   if (library.length >= MAX_VIDEOS) {
     return { ok: false, error: `Library full (${MAX_VIDEOS} max). Remove a video first.` };
@@ -80,7 +97,7 @@ export function addYouTubeVideo(url) {
   }
 
   const id = 'yt-' + Date.now();
-  const entry = { id, name: 'YouTube Video', type: 'youtube', youtubeId };
+  const entry = { id, name: name || 'YouTube Video', type: 'youtube', youtubeId };
   library.push(entry);
   saveLibrary(library);
   return { ok: true, entry };

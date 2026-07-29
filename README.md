@@ -1,27 +1,38 @@
-<h1 align="center">Pomobodo</h1>
+<h1 align="center">Flowdoro</h1>
+
+<p align="center"><em>Focus in motion</em></p>
 
 ---
 
-<p align="center">Minimalist desktop Pomodoro. To-do list. Custom video backgrounds.</p>
+<p align="center">A Pomodoro timer, task manager, and ambient video player — in one distraction-free window.</p>
 
 ![alt text](image.png)
 
 ### What it is
-Pomobodo is a lightweight desktop productivity application built using Tauri, HTML, CSS, and JavaScript. It combines three productivity pillars—a Pomodoro timer, a task manager, and ambient video loops—into a single distraction-free mosaic layout.
+Flowdoro is a lightweight desktop productivity app built with Tauri, HTML, CSS, and JavaScript. It combines three tools into a single mosaic layout:
+
+- **Pomodoro Timer** — Work/Break cycle with an SVG progress ring, auto-cycling, and keyboard shortcuts
+- **Task Manager** — Add, complete, and delete tasks with persistent storage
+- **Ambient Video Player** — Loop local videos or YouTube URLs as your focus backdrop
+- **Daily Progress Tracker** — Track focus minutes, daily goals, streaks, and yesterday's total
 
 ### Features
-- **Customizable Pomodoro Timer**: Switch between focus and break modes, customize duration times, and track progress using an interactive SVG progress ring.
-- **Built-in Task Manager**: Organize and check off items directly in the dashboard, complete with task counters and empty-state feedback.
-- **Ambient Video Player**: Load and control ambient looping videos or customize your backdrop using a built-in library slot manager with support for custom YouTube URLs.
-- **Daily Progress Tracker**: Monitor daily streaks, compare today's session minutes against yesterday's, and dynamically adjust daily focus goals.
+- Customizable work and break durations
+- Auto-start breaks, "Ready to focus?" prompt before work sessions
+- Ambient video syncs with the timer — plays when you work, pauses when you stop
+- Video library with up to 8 slots (local files + YouTube URLs)
+- Daily progress ring with adjustable goals
+- Native OS notifications on session completion
+- Keyboard shortcuts: `Space` (play/pause), `R` (restart), `S` (skip)
+- First-run onboarding overlay for new users
 
 ### How to run
 1. Ensure you have **Node.js** and the **Rust** toolchain installed.
-2. In the project root, install the dependencies:
+2. Install dependencies:
    ```powershell
    npm install
    ```
-3. Run the application in Tauri's development mode:
+3. Run in development mode:
    ```powershell
    npm run tauri dev
    ```

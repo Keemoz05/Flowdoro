@@ -10,7 +10,16 @@
 import { addWorkSecond, saveProgressNow } from './progress.js';
 
 const RING_CIRCUMFERENCE = 553; // 2π × 88px (SVG circle radius)
-const SETTINGS_KEY = 'pomobodo_settings';
+const SETTINGS_KEY = 'flowdoro_settings';
+
+// Migrate from old storage key (one-time)
+(() => {
+  const old = localStorage.getItem('pomobodo_settings');
+  if (old !== null && !localStorage.getItem(SETTINGS_KEY)) {
+    localStorage.setItem(SETTINGS_KEY, old);
+    localStorage.removeItem('pomobodo_settings');
+  }
+})();
 
 // ── Default durations (in minutes) ──
 const DEFAULTS = {
@@ -120,7 +129,7 @@ function playNotificationSound() {
 function sendNotification(title, body) {
   try {
     if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification(title, { body, icon: '/assets/tauri.svg' });
+      new Notification(title, { body });
     }
   } catch (_) {}
 }
@@ -183,8 +192,8 @@ function render() {
 
   // Page title
   document.title = state.isRunning
-    ? `${formatTime(state.timeRemaining)} · Pomobodo`
-    : 'Pomobodo';
+    ? `${formatTime(state.timeRemaining)} · Flowdoro`
+    : 'Flowdoro';
 
   // Disable duration inputs while running
   elWorkInput.disabled  = state.isRunning;
@@ -267,9 +276,9 @@ function handleComplete() {
 
   // Send notification
   if (completedMode === 'work') {
-    sendNotification('Work session complete!', 'Time for a break. 🎉');
+    sendNotification('Work session complete!', 'Time for a break.');
   } else {
-    sendNotification('Break over!', 'Ready to focus? 🍅');
+    sendNotification('Break over!', 'Ready to focus?');
   }
 
   saveProgressNow();
@@ -290,11 +299,11 @@ function advanceSession(isSkip) {
     render();
 
     if (!isSkip) {
-      showToast('☕ Break time! Relax.');
+      showToast('Break time — you earned it.');
       // Auto-start the break timer
       setTimeout(() => startTimer(), 500);
     } else {
-      showToast('⏭ Skipped to break.');
+      showToast('Skipped to break.');
     }
   } else {
     // Break finished → wait for user ("Ready to focus?")
@@ -305,9 +314,9 @@ function advanceSession(isSkip) {
     render();
 
     if (!isSkip) {
-      showToast('🍅 Ready to focus? Press Start.');
+      showToast('Ready to focus? Press Start.');
     } else {
-      showToast('⏭ Skipped to work.');
+      showToast('Skipped to work.');
     }
   }
 }

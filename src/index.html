@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Pomobodo — a Pomodoro timer, todo list, and ambient video player in one app." />
-    <title>Pomobodo</title>
+    <meta name="description" content="Flowdoro — Focus in motion. A Pomodoro timer with ambient video backgrounds and task tracking." />
+    <title>Flowdoro</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
@@ -103,8 +103,8 @@
             </ul>
 
             <div id="todo-empty" aria-live="polite">
-              <span class="empty-icon">✓</span>
-              <p>What to do, what to do...</p>
+              <span class="empty-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <p>No tasks yet — add one above</p>
             </div>
           </section>
 
@@ -165,6 +165,11 @@
             </button>
           </div>
 
+          <!-- Keyboard shortcut hints -->
+          <div id="shortcut-hints">
+            <kbd>Space</kbd> play · <kbd>R</kbd> restart · <kbd>S</kbd> skip
+          </div>
+
           </aside><!-- /timer-panel -->
 
           <!-- Daily Progress Widget -->
@@ -219,5 +224,45 @@
     
 
     <script type="module" src="/main.js"></script>
+
+    <!-- Onboarding overlay (shown once on first launch) -->
+    <div id="onboarding-overlay" class="hidden">
+      <div class="onboarding-card">
+        <h2>Welcome to Flowdoro</h2>
+        <p class="tagline">Focus in motion — a timer, your tasks, and ambient visuals in one calm space.</p>
+        <div class="onboarding-steps">
+          <div class="onboarding-step">
+            <div class="onboarding-step-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div class="onboarding-step-text">
+              <strong>Start a timer</strong>
+              <span>Press Play or hit Space to begin a focus session.</span>
+            </div>
+          </div>
+          <div class="onboarding-step">
+            <div class="onboarding-step-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="onboarding-step-text">
+              <strong>Track your tasks</strong>
+              <span>Add what you’re working on to stay focused.</span>
+            </div>
+          </div>
+          <div class="onboarding-step">
+            <div class="onboarding-step-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+            </div>
+            <div class="onboarding-step-text">
+              <strong>Set your scene</strong>
+              <span>Add ambient videos that play while you work.</span>
+            </div>
+          </div>
+        </div>
+        <div class="onboarding-actions">
+          <button class="btn-onboarding-start" id="btn-onboarding-dismiss">Get Started</button>
+        </div>
+      </div>
+    </div>
   </body>
 </html>

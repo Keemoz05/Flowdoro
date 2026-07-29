@@ -3,7 +3,16 @@
  * Stores tasks in localStorage. Supports add, complete, delete.
  */
 
-const STORAGE_KEY = 'pomobodo_tasks';
+const STORAGE_KEY = 'flowdoro_tasks';
+
+// Migrate from old storage key (one-time)
+(() => {
+  const old = localStorage.getItem('pomobodo_tasks');
+  if (old !== null && !localStorage.getItem(STORAGE_KEY)) {
+    localStorage.setItem(STORAGE_KEY, old);
+    localStorage.removeItem('pomobodo_tasks');
+  }
+})();
 
 let tasks = [];
 

@@ -6,7 +6,16 @@
  * Renders a circular progress ring with stats.
  */
 
-const PROGRESS_KEY = 'pomobodo_progress';
+const PROGRESS_KEY = 'flowdoro_progress';
+
+// Migrate from old storage key (one-time)
+(() => {
+  const old = localStorage.getItem('pomobodo_progress');
+  if (old !== null && !localStorage.getItem(PROGRESS_KEY)) {
+    localStorage.setItem(PROGRESS_KEY, old);
+    localStorage.removeItem('pomobodo_progress');
+  }
+})();
 const RING_CIRCUMFERENCE = 2 * Math.PI * 44; // ≈ 276.46
 
 let progressState = {
@@ -77,6 +86,23 @@ function checkDailyReset() {
   }
 }
 
+// Track previously rendered values for animation triggers
+let prevRendered = { completedMinutes: -1, streak: -1 };
+
+/**
+ * Trigger a brief scale-bump animation on an element when its value changes.
+ */
+function bumpIfChanged(el, newVal, key) {
+  if (prevRendered[key] !== -1 && prevRendered[key] !== newVal) {
+    el.classList.remove('stat-bump');
+    // Force reflow to restart animation
+    void el.offsetWidth;
+    el.classList.add('stat-bump');
+    el.addEventListener('animationend', () => el.classList.remove('stat-bump'), { once: true });
+  }
+  prevRendered[key] = newVal;
+}
+
 // ─────────────────────────────────────────────────────
 //  Render
 // ─────────────────────────────────────────────────────
@@ -96,10 +122,12 @@ function renderProgress() {
 
   // Streak
   els.streakValue.textContent = progressState.streak;
+  bumpIfChanged(els.streakValue, progressState.streak, 'streak');
 
   // Completed
   els.completedMinutes.textContent = completedMinutes;
   els.completedUnit.textContent = completedMinutes === 1 ? 'minute' : 'minutes';
+  bumpIfChanged(els.completedMinutes, completedMinutes, 'completedMinutes');
 
   // Goal display
   formatGoalDisplay();

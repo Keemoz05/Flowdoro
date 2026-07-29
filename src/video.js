@@ -71,10 +71,47 @@ function getVideoSrc(entry) {
 }
 
 // ─────────────────────────────────────────────────────
+//  Empty State (no videos in library)
+// ─────────────────────────────────────────────────────
+function renderEmptyState() {
+  clearEmptyState();
+  elVideo.style.display = 'none';
+  elHint.textContent = 'No videos yet';
+
+  const emptyDiv = document.createElement('div');
+  emptyDiv.className = 'video-empty-state';
+  emptyDiv.id = 'video-empty-state';
+  emptyDiv.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="2"/>
+      <polygon points="10 8 16 12 10 16 10 8"/>
+    </svg>
+    <h3>Set your scene</h3>
+    <p>Add an ambient video to play while you focus</p>
+    <button class="btn-empty-cta" id="btn-add-first-video">Add Video</button>
+  `;
+
+  const container = document.getElementById('video-container');
+  container.appendChild(emptyDiv);
+
+  // Wire the button to open settings
+  document.getElementById('btn-add-first-video').addEventListener('click', () => {
+    document.getElementById('video-settings-overlay').classList.remove('hidden');
+    renderLibraryGrid();
+  });
+}
+
+function clearEmptyState() {
+  const existing = document.getElementById('video-empty-state');
+  if (existing) existing.remove();
+}
+
+// ─────────────────────────────────────────────────────
 //  Load a video entry (local or YouTube)
 // ─────────────────────────────────────────────────────
 function loadEntry(entry) {
   if (!entry) return;
+  clearEmptyState();
   currentEntry = entry;
   setActiveVideoId(entry.id);
 
@@ -101,7 +138,7 @@ function loadEntry(entry) {
       ytDeferred = true;
     }
 
-    elHint.textContent = `${isMuted ? '🔇' : '🔊'} YouTube · Ambient`;
+    elHint.textContent = `${isMuted ? 'Muted' : 'Sound on'} · YouTube · Ambient`;
   } else {
     // Switch to local <video>
     elYoutube.style.display = 'none';
@@ -114,7 +151,7 @@ function loadEntry(entry) {
       elVideo.muted = isMuted;
       elVideo.load();
     }
-    elHint.textContent = `${isMuted ? '🔇' : '🔊'} ${entry.name} · Ambient`;
+    elHint.textContent = `${isMuted ? 'Muted' : 'Sound on'} · ${entry.name} · Ambient`;
   }
 
   // Update dot selector active state
@@ -179,7 +216,7 @@ function toggleVolume() {
   // Update hint
   if (currentEntry) {
     const name = currentEntry.type === 'youtube' ? 'YouTube' : currentEntry.name;
-    elHint.textContent = `${isMuted ? '🔇' : '🔊'} ${name} · Ambient`;
+    elHint.textContent = `${isMuted ? 'Muted' : 'Sound on'} · ${name} · Ambient`;
   }
 }
 
@@ -316,18 +353,28 @@ async function handleAddLocalVideo() {
 // ─────────────────────────────────────────────────────
 //  Add YouTube Video
 // ─────────────────────────────────────────────────────
-function handleAddYouTube() {
+async function handleAddYouTube() {
   const url = elYtInput.value.trim();
   if (!url) return;
 
-  const result = addYouTubeVideo(url);
+  // Fetch video title from oEmbed (best-effort)
+  let title = '';
+  try {
+    const resp = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(url)}`);
+    if (resp.ok) {
+      const data = await resp.json();
+      if (data.title) title = data.title;
+    }
+  } catch (_) { /* Fallback to default name */ }
+
+  const result = addYouTubeVideo(url, title);
   if (!result.ok) {
     showToast(result.error);
     return;
   }
 
   elYtInput.value = '';
-  showToast('YouTube video added');
+  showToast(title ? `Added "${title}"` : 'YouTube video added');
   renderLibraryGrid();
   renderDotSelector();
 
@@ -363,10 +410,10 @@ async function handleDeleteVideo(entry) {
     } else {
       currentEntry = null;
       elVideo.src = '';
-      elVideo.style.display = 'block';
+      elVideo.style.display = 'none';
       elYoutube.style.display = 'none';
       elYoutube.src = '';
-      elHint.textContent = '🔇 No videos · Add one in settings';
+      renderEmptyState();
     }
   }
 
@@ -467,7 +514,7 @@ export async function initVideo() {
   if (activeEntry) {
     loadEntry(activeEntry);
   } else {
-    elHint.textContent = '🔇 No videos · Add one in settings';
+    renderEmptyState();
   }
 
   // ── Event listeners ──
