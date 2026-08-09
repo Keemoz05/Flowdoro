@@ -48,11 +48,6 @@ Flowdoro is a lightweight desktop app (built with [Tauri](https://tauri.app)) th
 2. Run it. Because Flowdoro isn't code-signed yet, Windows SmartScreen may show
    **"Windows protected your PC."** This is expected for indie apps — click
    **More info → Run anyway** to continue.
-3. *(Optional, recommended)* Verify the download hasn't been tampered with. In PowerShell:
-   ```powershell
-   Get-FileHash .\Flowdoro_2.0.0_x64-setup.exe -Algorithm SHA256
-   ```
-   Compare the output to the `SHA256` value listed on the release notes.
 
 > Requires Windows 10/11. The installer bundles the WebView2 runtime if it isn't already present.
 
@@ -66,6 +61,3 @@ npm run tauri dev     # run in development
 npm run tauri build   # produce installers in src-tauri/target/release/bundle
 ```
 
-## License
-
-[MIT](LICENSE) © Keemoz
