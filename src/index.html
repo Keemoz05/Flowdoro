@@ -64,17 +64,20 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
               </button>
 
-              <!-- Volume toggle (muted by default, shows on hover) -->
+              <!-- Volume toggle (shows on hover) -->
               <button id="btn-volume-toggle" aria-label="Toggle volume" title="Toggle sound">
                 <svg id="icon-vol-muted" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
                 <svg id="icon-vol-on" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
               </button>
 
+              <!-- Volume slider (shows on hover) -->
+              <input id="video-volume-slider" type="range" min="0" max="100" step="1" value="50" aria-label="Video volume" title="Volume" />
+
               <!-- Dynamic dot selector (bottom-right) -->
               <div id="video-selector" aria-label="Choose ambient video"></div>
 
-              <!-- Muted indicator -->
-              <div id="video-hint">🔇 Ambient · Plays with timer</div>
+              <!-- Ambient indicator -->
+              <div id="video-hint">Ambient · Plays with timer</div>
             </div>
           </section>
 
@@ -133,6 +136,19 @@
               <label for="input-break-min">Break</label>
               <input type="number" id="input-break-min" value="5" min="1" max="60" />
             </div>
+          </div>
+
+          <!-- Alarm sound picker -->
+          <div id="sound-settings">
+            <label for="select-sound">Alarm</label>
+            <select id="select-sound" aria-label="Alarm sound">
+              <option value="chime">Chime</option>
+              <option value="bell">Bell</option>
+              <option value="beep">Soft Beep</option>
+            </select>
+            <button id="btn-test-sound" type="button" aria-label="Preview alarm sound" title="Preview">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </button>
           </div>
 
           <!-- SVG Ring Progress -->
@@ -225,42 +241,20 @@
 
     <script type="module" src="/main.js"></script>
 
-    <!-- Onboarding overlay (shown once on first launch) -->
-    <div id="onboarding-overlay" class="hidden">
-      <div class="onboarding-card">
-        <h2>Welcome to Flowdoro</h2>
-        <p class="tagline">Focus in motion — a timer, your tasks, and ambient visuals in one calm space.</p>
-        <div class="onboarding-steps">
-          <div class="onboarding-step">
-            <div class="onboarding-step-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            </div>
-            <div class="onboarding-step-text">
-              <strong>Start a timer</strong>
-              <span>Press Play or hit Space to begin a focus session.</span>
-            </div>
+    <!-- Onboarding spotlight tour (shown once on first launch) -->
+    <div id="onboarding-overlay" class="hidden" aria-live="polite">
+      <div id="onboarding-spotlight"></div>
+      <div id="onboarding-tooltip">
+        <div id="ob-icon"></div>
+        <h3 id="ob-title"></h3>
+        <p id="ob-body"></p>
+        <div id="onboarding-tip-footer">
+          <span id="ob-progress"></span>
+          <div id="onboarding-tip-actions">
+            <button id="ob-skip" class="ob-btn ob-btn-ghost" type="button">Skip</button>
+            <button id="ob-back" class="ob-btn ob-btn-ghost" type="button">Back</button>
+            <button id="ob-next" class="ob-btn ob-btn-primary" type="button">Next</button>
           </div>
-          <div class="onboarding-step">
-            <div class="onboarding-step-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-            <div class="onboarding-step-text">
-              <strong>Track your tasks</strong>
-              <span>Add what you’re working on to stay focused.</span>
-            </div>
-          </div>
-          <div class="onboarding-step">
-            <div class="onboarding-step-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
-            </div>
-            <div class="onboarding-step-text">
-              <strong>Set your scene</strong>
-              <span>Add ambient videos that play while you work.</span>
-            </div>
-          </div>
-        </div>
-        <div class="onboarding-actions">
-          <button class="btn-onboarding-start" id="btn-onboarding-dismiss">Get Started</button>
         </div>
       </div>
     </div>

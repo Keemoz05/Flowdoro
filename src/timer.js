@@ -25,6 +25,7 @@ const SETTINGS_KEY = 'flowdoro_settings';
 const DEFAULTS = {
   workMin: 15,
   breakMin: 5,
+  sound: 'chime',
 };
 
 let state = {
@@ -49,6 +50,8 @@ const elBtnSkip     = document.getElementById('btn-skip');
 const elModeTabs    = document.querySelectorAll('.mode-tab');
 const elWorkInput   = document.getElementById('input-work-min');
 const elBreakInput  = document.getElementById('input-break-min');
+const elSoundSelect = document.getElementById('select-sound');
+const elTestSound   = document.getElementById('btn-test-sound');
 
 /** Callbacks so other modules can react to timer events */
 export const timerEvents = {
@@ -68,6 +71,7 @@ function loadSettings() {
     const data = JSON.parse(raw);
     if (data.workMin) elWorkInput.value = data.workMin;
     if (data.breakMin) elBreakInput.value = data.breakMin;
+    if (data.sound && elSoundSelect) elSoundSelect.value = data.sound;
   } catch (_) {}
 }
 
@@ -75,6 +79,7 @@ function saveSettings() {
   const data = {
     workMin:  parseInt(elWorkInput.value, 10) || DEFAULTS.workMin,
     breakMin: parseInt(elBreakInput.value, 10) || DEFAULTS.breakMin,
+    sound:    elSoundSelect ? elSoundSelect.value : DEFAULTS.sound,
   };
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(data));
 }
@@ -94,39 +99,105 @@ function getBreakSeconds() {
 // ─────────────────────────────────────────────────────
 let audioCtx = null;
 
+function getAudioCtx() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return audioCtx;
+}
+
+/** Pleasant ascending chime: C5 → E5 → G5 */
+function playChime(ctx, now) {
+  const notes = [523.25, 659.25, 783.99];
+  notes.forEach((freq, i) => {
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = freq;
+    osc.type = 'sine';
+    const start = now + i * 0.18;
+    gain.gain.setValueAtTime(0, start);
+    gain.gain.linearRampToValueAtTime(0.25, start + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.6);
+    osc.start(start);
+    osc.stop(start + 0.6);
+  });
+}
+
+/** Warm bell: fundamental plus inharmonic partials with a long decay */
+function playBell(ctx, now) {
+  const partials = [
+    { freq: 660,        gain: 0.30, dur: 1.6 },
+    { freq: 660 * 2.76, gain: 0.12, dur: 1.2 },
+    { freq: 660 * 5.40, gain: 0.05, dur: 0.8 },
+  ];
+  partials.forEach(p => {
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = p.freq;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(p.gain, now + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.0008, now + p.dur);
+    osc.start(now);
+    osc.stop(now + p.dur);
+  });
+}
+
+/** Soft double beep */
+function playBeep(ctx, now) {
+  [0, 0.22].forEach(offset => {
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 620;
+    osc.type = 'sine';
+    const start = now + offset;
+    gain.gain.setValueAtTime(0, start);
+    gain.gain.linearRampToValueAtTime(0.20, start + 0.02);
+    gain.gain.setValueAtTime(0.20, start + 0.10);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.18);
+    osc.start(start);
+    osc.stop(start + 0.2);
+  });
+}
+
 function playNotificationSound() {
   try {
-    if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    // Pleasant ascending chime: C5 → E5 → G5
-    const notes = [523.25, 659.25, 783.99];
-    const now = audioCtx.currentTime;
-
-    notes.forEach((freq, i) => {
-      const osc  = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-
-      osc.frequency.value = freq;
-      osc.type = 'sine';
-
-      const start = now + i * 0.18;
-      gain.gain.setValueAtTime(0, start);
-      gain.gain.linearRampToValueAtTime(0.25, start + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.6);
-
-      osc.start(start);
-      osc.stop(start + 0.6);
-    });
+    const ctx = getAudioCtx();
+    if (ctx.state === 'suspended') ctx.resume();
+    const now = ctx.currentTime;
+    const type = elSoundSelect ? elSoundSelect.value : DEFAULTS.sound;
+    if (type === 'bell')      playBell(ctx, now);
+    else if (type === 'beep') playBeep(ctx, now);
+    else                      playChime(ctx, now);
   } catch (_) {}
 }
 
 // ─────────────────────────────────────────────────────
 //  Notifications
 // ─────────────────────────────────────────────────────
-function sendNotification(title, body) {
+async function sendNotification(title, body) {
+  // Prefer the native OS (Windows) notification via the Tauri plugin
+  try {
+    const tn = window.__TAURI__ && window.__TAURI__.notification;
+    if (tn) {
+      let granted = await tn.isPermissionGranted();
+      if (!granted) {
+        granted = (await tn.requestPermission()) === 'granted';
+      }
+      if (granted) {
+        tn.sendNotification({ title, body });
+        return;
+      }
+    }
+  } catch (_) { /* fall through to the web API */ }
+
+  // Fallback: browser Notification API
   try {
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification(title, { body });
@@ -136,6 +207,13 @@ function sendNotification(title, body) {
 
 function requestNotificationPermission() {
   try {
+    const tn = window.__TAURI__ && window.__TAURI__.notification;
+    if (tn) {
+      tn.isPermissionGranted()
+        .then(granted => { if (!granted) tn.requestPermission(); })
+        .catch(() => {});
+      return;
+    }
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission();
     }
@@ -385,10 +463,19 @@ export function initTimer() {
   elWorkInput.addEventListener('change', handleDurationChange);
   elBreakInput.addEventListener('change', handleDurationChange);
 
+  // Alarm sound picker
+  if (elSoundSelect) elSoundSelect.addEventListener('change', saveSettings);
+  if (elTestSound) {
+    elTestSound.addEventListener('click', (e) => {
+      e.preventDefault();
+      playNotificationSound();
+    });
+  }
+
   // Keyboard shortcuts
   window.addEventListener('keydown', (e) => {
-    // Ignore when typing in inputs
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    // Ignore when typing in inputs or using the sound dropdown
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
 
     if (e.code === 'Space') { e.preventDefault(); toggleTimer(); }
     if (e.code === 'KeyR')  { e.preventDefault(); restartTimer(); }

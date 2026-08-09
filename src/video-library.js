@@ -8,8 +8,10 @@
 
 const STORAGE_KEY = 'flowdoro-video-library';
 const VOLUME_KEY = 'flowdoro-video-muted';
+const VOLUME_LEVEL_KEY = 'flowdoro-video-volume';
 const ACTIVE_KEY = 'flowdoro-active-video';
 const MAX_VIDEOS = 8;
+const DEFAULT_VOLUME = 50; // 0–100
 
 // Migrate from old storage keys (one-time)
 (() => {
@@ -124,11 +126,25 @@ export function removeVideo(videoId) {
 
 export function getVolumeMuted() {
   const val = localStorage.getItem(VOLUME_KEY);
-  return val === null ? true : val === 'true'; // Default: muted
+  return val === null ? false : val === 'true'; // Default: audible
 }
 
 export function setVolumeMuted(muted) {
   localStorage.setItem(VOLUME_KEY, String(muted));
+}
+
+/** Stored volume level, 0–100. Defaults to DEFAULT_VOLUME. */
+export function getVolumeLevel() {
+  const raw = localStorage.getItem(VOLUME_LEVEL_KEY);
+  if (raw === null) return DEFAULT_VOLUME;
+  const n = parseInt(raw, 10);
+  if (Number.isNaN(n)) return DEFAULT_VOLUME;
+  return Math.min(100, Math.max(0, n));
+}
+
+export function setVolumeLevel(level) {
+  const n = Math.min(100, Math.max(0, Math.round(level)));
+  localStorage.setItem(VOLUME_LEVEL_KEY, String(n));
 }
 
 // ─────────────────────────────────────────────────────

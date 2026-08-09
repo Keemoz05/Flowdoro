@@ -14,9 +14,13 @@ import {
   getLibrary,
   addLocalVideo, addYouTubeVideo, removeVideo,
   getVolumeMuted, setVolumeMuted,
+  getVolumeLevel, setVolumeLevel,
   getActiveVideoId, setActiveVideoId,
   extractYouTubeId, MAX_LIBRARY_SIZE,
 } from './video-library.js';
+
+// Volume to restore to when un-muting from a fully-silent state
+const DEFAULT_UNMUTE_VOLUME = 50;
 
 // ── DOM refs ──
 const elVideo         = document.getElementById('video-player');
@@ -33,10 +37,12 @@ const elSlotCounter   = document.getElementById('video-slot-counter');
 const elVolumeBtn     = document.getElementById('btn-volume-toggle');
 const elVolumeMuted   = document.getElementById('icon-vol-muted');
 const elVolumeOn      = document.getElementById('icon-vol-on');
+const elVolumeSlider  = document.getElementById('video-volume-slider');
 
 // ── State ──
 let currentEntry = null;   // Currently playing library entry
-let isMuted = true;
+let isMuted = false;
+let volume = DEFAULT_UNMUTE_VOLUME;  // 0–100
 let ytReady = false;       // YouTube iframe API ready
 let libraryPath = '';      // Absolute path to $APPDATA/videos/
 let shouldBePlaying = false;  // Whether the timer has requested video playback
@@ -68,6 +74,48 @@ function getVideoSrc(entry) {
     return '';
   }
   return '';
+}
+
+// ─────────────────────────────────────────────────────
+//  Audio helpers (volume + mute)
+// ─────────────────────────────────────────────────────
+/** True when no sound should be heard (explicit mute or volume at 0). */
+function isAudioOff() {
+  return isMuted || volume === 0;
+}
+
+/** Build the YouTube embed URL, respecting the current mute state. */
+function buildYouTubeEmbedUrl(youtubeId) {
+  return `https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=${isAudioOff() ? 1 : 0}&loop=1&playlist=${youtubeId}&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}&rel=0&controls=0`;
+}
+
+/** Send a command to the YouTube iframe via postMessage. */
+function postYouTube(func, args = '') {
+  try {
+    elYoutube.contentWindow.postMessage(
+      JSON.stringify({ event: 'command', func, args }), '*'
+    );
+  } catch (e) { /* cross-origin safety */ }
+}
+
+/** Push the current volume + mute state to whichever player is active. */
+function applyVolume() {
+  if (currentEntry && currentEntry.type === 'youtube') {
+    if (!ytDeferred) {
+      postYouTube('setVolume', [volume]);
+      postYouTube(isAudioOff() ? 'mute' : 'unMute');
+    }
+  } else {
+    elVideo.volume = volume / 100;
+    elVideo.muted = isAudioOff();
+  }
+}
+
+/** Update the hint label to reflect the current audio state. */
+function updateHint() {
+  if (!currentEntry) return;
+  const name = currentEntry.type === 'youtube' ? 'YouTube' : currentEntry.name;
+  elHint.textContent = `${isAudioOff() ? 'Muted' : 'Sound on'} · ${name} · Ambient`;
 }
 
 // ─────────────────────────────────────────────────────
@@ -115,9 +163,7 @@ function loadEntry(entry) {
   currentEntry = entry;
   setActiveVideoId(entry.id);
 
-  // Force volume to off when loading a video
-  isMuted = true;
-  setVolumeMuted(true);
+  // Reflect the saved volume preference on the controls
   updateVolumeUI();
 
   if (entry.type === 'youtube') {
@@ -129,16 +175,13 @@ function loadEntry(entry) {
 
     if (shouldBePlaying) {
       // Timer is already running — load YouTube immediately with autoplay
-      const embedUrl = `https://www.youtube.com/embed/${entry.youtubeId}?autoplay=1&mute=${isMuted ? 1 : 0}&loop=1&playlist=${entry.youtubeId}&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}&rel=0&controls=0`;
-      elYoutube.src = embedUrl;
+      elYoutube.src = buildYouTubeEmbedUrl(entry.youtubeId);
       ytDeferred = false;
     } else {
       // Timer not running — defer iframe load to save GPU/RAM (~50-120MB)
       elYoutube.src = 'about:blank';
       ytDeferred = true;
     }
-
-    elHint.textContent = `${isMuted ? 'Muted' : 'Sound on'} · YouTube · Ambient`;
   } else {
     // Switch to local <video>
     elYoutube.style.display = 'none';
@@ -148,11 +191,13 @@ function loadEntry(entry) {
     const src = getVideoSrc(entry);
     if (src) {
       elVideo.src = src;
-      elVideo.muted = isMuted;
+      elVideo.volume = volume / 100;
+      elVideo.muted = isAudioOff();
       elVideo.load();
     }
-    elHint.textContent = `${isMuted ? 'Muted' : 'Sound on'} · ${entry.name} · Ambient`;
   }
+
+  updateHint();
 
   // Update dot selector active state
   renderDotSelector();
@@ -188,36 +233,39 @@ function renderDotSelector() {
 //  Volume Toggle
 // ─────────────────────────────────────────────────────
 function updateVolumeUI() {
+  const off = isAudioOff();
   if (elVolumeMuted && elVolumeOn) {
-    elVolumeMuted.style.display = isMuted ? 'block' : 'none';
-    elVolumeOn.style.display    = isMuted ? 'none' : 'block';
+    elVolumeMuted.style.display = off ? 'block' : 'none';
+    elVolumeOn.style.display    = off ? 'none' : 'block';
   }
+  if (elVolumeSlider) elVolumeSlider.value = String(volume);
 }
 
+/** Mute button — toggle sound off/on, restoring a sensible volume. */
 function toggleVolume() {
-  isMuted = !isMuted;
-  setVolumeMuted(isMuted);
-  updateVolumeUI();
-
-  if (currentEntry && currentEntry.type === 'youtube') {
-    // YouTube: send postMessage to mute/unmute (only if iframe is loaded)
-    if (!ytDeferred) {
-      try {
-        const cmd = isMuted
-          ? '{"event":"command","func":"mute","args":""}'
-          : '{"event":"command","func":"unMute","args":""}';
-        elYoutube.contentWindow.postMessage(cmd, '*');
-      } catch (e) { /* cross-origin safety */ }
-    }
+  if (isAudioOff()) {
+    // Turn sound back on
+    isMuted = false;
+    if (volume === 0) volume = DEFAULT_UNMUTE_VOLUME;
   } else {
-    elVideo.muted = isMuted;
+    isMuted = true;
   }
+  setVolumeMuted(isMuted);
+  setVolumeLevel(volume);
+  applyVolume();
+  updateVolumeUI();
+  updateHint();
+}
 
-  // Update hint
-  if (currentEntry) {
-    const name = currentEntry.type === 'youtube' ? 'YouTube' : currentEntry.name;
-    elHint.textContent = `${isMuted ? 'Muted' : 'Sound on'} · ${name} · Ambient`;
-  }
+/** Volume slider — set the level; any level above 0 implies un-muted. */
+function handleVolumeSlider(e) {
+  volume = parseInt(e.target.value, 10) || 0;
+  if (volume > 0) isMuted = false;
+  setVolumeLevel(volume);
+  setVolumeMuted(isMuted);
+  applyVolume();
+  updateVolumeUI();
+  updateHint();
 }
 
 // ─────────────────────────────────────────────────────
@@ -462,18 +510,15 @@ export function playVideo() {
   if (currentEntry.type === 'youtube') {
     if (ytDeferred) {
       // First play — load the YouTube iframe now with autoplay
-      const embedUrl = `https://www.youtube.com/embed/${currentEntry.youtubeId}?autoplay=1&mute=${isMuted ? 1 : 0}&loop=1&playlist=${currentEntry.youtubeId}&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}&rel=0&controls=0`;
-      elYoutube.src = embedUrl;
+      elYoutube.src = buildYouTubeEmbedUrl(currentEntry.youtubeId);
       ytDeferred = false;
     } else {
-      try {
-        elYoutube.contentWindow.postMessage(
-          '{"event":"command","func":"playVideo","args":""}', '*'
-        );
-      } catch (e) { /* cross-origin */ }
+      postYouTube('playVideo');
+      applyVolume();
     }
   } else {
-    elVideo.muted = isMuted;
+    elVideo.volume = volume / 100;
+    elVideo.muted = isAudioOff();
     elVideo.play().catch(() => {});
   }
 }
@@ -502,9 +547,9 @@ export async function initVideo() {
   // Resolve library path from Tauri
   await resolveLibraryPath();
 
-  // Force volume to off on app open
-  isMuted = true;
-  setVolumeMuted(true);
+  // Restore saved volume preference (audible by default)
+  isMuted = getVolumeMuted();
+  volume = getVolumeLevel();
   updateVolumeUI();
 
   // Load the previously active video, or first in library
@@ -548,6 +593,21 @@ export async function initVideo() {
     toggleVolume();
   });
 
+  // Volume slider
+  if (elVolumeSlider) {
+    elVolumeSlider.value = String(volume);
+    elVolumeSlider.addEventListener('input', handleVolumeSlider);
+    elVolumeSlider.addEventListener('click', (e) => e.stopPropagation());
+  }
+
+  // Once a YouTube iframe finishes loading, push the saved volume to it
+  // (the player ignores commands until it's ready, so re-apply after a beat).
+  elYoutube.addEventListener('load', () => {
+    if (currentEntry && currentEntry.type === 'youtube' && !ytDeferred) {
+      setTimeout(applyVolume, 600);
+    }
+  });
+
   // Keyboard isolation
   elVideo.addEventListener('keydown', blockVideoKeyboard);
   elVideo.addEventListener('keyup', blockVideoKeyboard);
@@ -576,18 +636,15 @@ export async function initVideo() {
         if (currentEntry.type === 'youtube') {
           if (ytDeferred) {
             // YouTube was deferred and timer started while hidden — load now
-            const embedUrl = `https://www.youtube.com/embed/${currentEntry.youtubeId}?autoplay=1&mute=${isMuted ? 1 : 0}&loop=1&playlist=${currentEntry.youtubeId}&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}&rel=0&controls=0`;
-            elYoutube.src = embedUrl;
+            elYoutube.src = buildYouTubeEmbedUrl(currentEntry.youtubeId);
             ytDeferred = false;
           } else {
-            try {
-              elYoutube.contentWindow.postMessage(
-                '{"event":"command","func":"playVideo","args":""}', '*'
-              );
-            } catch (e) { /* cross-origin */ }
+            postYouTube('playVideo');
+            applyVolume();
           }
         } else {
-          elVideo.muted = isMuted;
+          elVideo.volume = volume / 100;
+          elVideo.muted = isAudioOff();
           elVideo.play().catch(() => {});
         }
       }
