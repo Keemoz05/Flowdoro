@@ -31,6 +31,8 @@
               <video id="video-player" loop muted preload="none" tabindex="-1"></video>
               <!-- YouTube iframe (hidden by default) -->
               <iframe id="youtube-player" allow="autoplay; encrypted-media" allowfullscreen referrerpolicy="origin"></iframe>
+              <!-- Poster thumbnail shown while the YouTube iframe is idle (cheap, no live player) -->
+              <img id="youtube-thumb" alt="" aria-hidden="true" />
 
               <!-- Settings overlay (hidden by default) -->
               <div id="video-settings-overlay" class="hidden">
@@ -119,6 +121,16 @@
           <!-- Timer Panel -->
           <aside id="timer-panel" aria-label="Pomodoro Timer">
 
+          <!-- Alarm sound dropdown (tucked into the timer's top-right) -->
+          <div id="alarm-dropdown">
+            <label for="select-sound">Alarm</label>
+            <select id="select-sound" aria-label="Alarm sound" title="Alarm sound (plays a preview when changed)">
+              <option value="chime">Chime</option>
+              <option value="bell">Bell</option>
+              <option value="beep">Soft Beep</option>
+            </select>
+          </div>
+
           <!-- Mode tabs: Work / Break -->
           <div id="mode-tabs" role="tablist">
             <button class="mode-tab active" id="tab-work" role="tab" data-mode="work">Work</button>
@@ -136,19 +148,6 @@
               <label for="input-break-min">Break</label>
               <input type="number" id="input-break-min" value="5" min="1" max="60" />
             </div>
-          </div>
-
-          <!-- Alarm sound picker -->
-          <div id="sound-settings">
-            <label for="select-sound">Alarm</label>
-            <select id="select-sound" aria-label="Alarm sound">
-              <option value="chime">Chime</option>
-              <option value="bell">Bell</option>
-              <option value="beep">Soft Beep</option>
-            </select>
-            <button id="btn-test-sound" type="button" aria-label="Preview alarm sound" title="Preview">
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            </button>
           </div>
 
           <!-- SVG Ring Progress -->

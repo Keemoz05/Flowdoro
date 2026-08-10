@@ -6,10 +6,10 @@
 /* ── CSS Custom Properties ── */
 :root {
   /* Colors — Recommended palette */
-  --color-bg:           #08080D;
-  --color-surface:      #0F0F17;
-  --color-surface-2:    #16161F;
-  --color-surface-3:    #1E1E28;
+  --color-bg:           #000000;
+  --color-surface:      #0D0D0D;
+  --color-surface-2:    #161616;
+  --color-surface-3:    #1E1E1E;
   --color-border:       rgba(255,255,255,0.06);
   --color-border-hover: rgba(255,255,255,0.12);
 
@@ -265,6 +265,19 @@ body {
   border: none;
   display: none;
   z-index: 1;
+}
+
+/* ── YouTube poster thumbnail (idle state) ── */
+#youtube-thumb {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: none;
+  display: none;
+  z-index: 1;
+  pointer-events: none;
 }
 
 /* ── Settings Overlay ── */
@@ -1028,68 +1041,51 @@ body {
   flex-shrink: 0;
 }
 
-/* ── Alarm Sound Picker ── */
-#sound-settings {
+/* ── Alarm Sound Dropdown (tucked into the timer panel's top-right) ── */
+#alarm-dropdown {
+  align-self: flex-end;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 5px 12px;
-  background: var(--color-surface-2);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  width: 100%;
-  max-width: 220px;
+  gap: 6px;
+  margin-top: -4px;
+  opacity: 0.55;
+  transition: opacity var(--transition-med);
 }
 
-#sound-settings label {
-  font-size: 10px;
-  font-weight: 500;
-  color: var(--color-text-muted);
+#alarm-dropdown:hover {
+  opacity: 1;
+}
+
+#alarm-dropdown label {
+  font-size: 9px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  white-space: nowrap;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
 }
 
 #select-sound {
-  flex: 1;
-  min-width: 0;
-  background: var(--color-surface-3);
+  background: var(--color-surface-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  color: var(--color-text-primary);
+  color: var(--color-text-secondary);
   font-family: var(--font-sans);
   font-size: 11px;
   font-weight: 600;
-  padding: 3px 6px;
+  padding: 4px 8px;
   outline: none;
   cursor: pointer;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: border-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+#select-sound:hover {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-hover);
 }
 
 #select-sound:focus {
   border-color: var(--color-accent);
   box-shadow: 0 0 0 2px var(--color-accent-dim);
-}
-
-#btn-test-sound {
-  width: 22px;
-  height: 22px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-surface-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  transition: color var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
-}
-
-#btn-test-sound:hover {
-  color: var(--color-accent);
-  background: var(--color-surface-2);
-  transform: scale(1.05);
 }
 
 /* ── SVG Ring ── */

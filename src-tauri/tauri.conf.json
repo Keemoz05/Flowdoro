@@ -20,7 +20,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://noembed.com; media-src 'self' asset: http://asset.localhost blob:; img-src 'self' asset: http://asset.localhost blob: data:; frame-src https://www.youtube-nocookie.com https://www.youtube.com",
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://noembed.com; media-src 'self' asset: http://asset.localhost blob:; img-src 'self' asset: http://asset.localhost blob: data: https://i.ytimg.com https://img.youtube.com; frame-src https://www.youtube-nocookie.com https://www.youtube.com",
       "assetProtocol": {
         "enable": true,
         "scope": ["$APPDATA/videos/**"]

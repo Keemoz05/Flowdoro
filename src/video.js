@@ -38,6 +38,7 @@ const elVolumeBtn     = document.getElementById('btn-volume-toggle');
 const elVolumeMuted   = document.getElementById('icon-vol-muted');
 const elVolumeOn      = document.getElementById('icon-vol-on');
 const elVolumeSlider  = document.getElementById('video-volume-slider');
+const elThumb         = document.getElementById('youtube-thumb');
 
 // ── State ──
 let currentEntry = null;   // Currently playing library entry
@@ -119,10 +120,39 @@ function updateHint() {
 }
 
 // ─────────────────────────────────────────────────────
+//  YouTube poster thumbnail
+//  Shown while the iframe is idle so the panel isn't black,
+//  without paying the RAM/GPU cost of a live player.
+// ─────────────────────────────────────────────────────
+function showYouTubeThumb(youtubeId) {
+  if (!elThumb) return;
+  // Try highest quality first, then a smaller size; some videos (e.g. certain
+  // live streams) have no static thumbnail at all — in that case stay black
+  // rather than show a broken-image icon.
+  let step = 0; // 0 = maxres, 1 = hqdefault, 2 = give up
+  elThumb.onerror = () => {
+    step++;
+    if (step === 1) {
+      elThumb.src = `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`;
+    } else {
+      elThumb.onerror = null;
+      hideThumb();
+    }
+  };
+  elThumb.src = `https://i.ytimg.com/vi/${youtubeId}/maxresdefault.jpg`;
+  elThumb.style.display = 'block';
+}
+
+function hideThumb() {
+  if (elThumb) elThumb.style.display = 'none';
+}
+
+// ─────────────────────────────────────────────────────
 //  Empty State (no videos in library)
 // ─────────────────────────────────────────────────────
 function renderEmptyState() {
   clearEmptyState();
+  hideThumb();
   elVideo.style.display = 'none';
   elHint.textContent = 'No videos yet';
 
@@ -173,6 +203,9 @@ function loadEntry(entry) {
     elYoutube.style.display = 'block';
     ytReady = false;
 
+    // Poster the panel with the thumbnail; it stays until the real iframe loads
+    showYouTubeThumb(entry.youtubeId);
+
     if (shouldBePlaying) {
       // Timer is already running — load YouTube immediately with autoplay
       elYoutube.src = buildYouTubeEmbedUrl(entry.youtubeId);
@@ -184,6 +217,7 @@ function loadEntry(entry) {
     }
   } else {
     // Switch to local <video>
+    hideThumb();
     elYoutube.style.display = 'none';
     elYoutube.src = 'about:blank';  // Properly unload YouTube renderer process
     elVideo.style.display = 'block';
@@ -604,6 +638,7 @@ export async function initVideo() {
   // (the player ignores commands until it's ready, so re-apply after a beat).
   elYoutube.addEventListener('load', () => {
     if (currentEntry && currentEntry.type === 'youtube' && !ytDeferred) {
+      hideThumb();  // real player is ready — swap poster for iframe
       setTimeout(applyVolume, 600);
     }
   });

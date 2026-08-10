@@ -51,7 +51,6 @@ const elModeTabs    = document.querySelectorAll('.mode-tab');
 const elWorkInput   = document.getElementById('input-work-min');
 const elBreakInput  = document.getElementById('input-break-min');
 const elSoundSelect = document.getElementById('select-sound');
-const elTestSound   = document.getElementById('btn-test-sound');
 
 /** Callbacks so other modules can react to timer events */
 export const timerEvents = {
@@ -463,11 +462,10 @@ export function initTimer() {
   elWorkInput.addEventListener('change', handleDurationChange);
   elBreakInput.addEventListener('change', handleDurationChange);
 
-  // Alarm sound picker
-  if (elSoundSelect) elSoundSelect.addEventListener('change', saveSettings);
-  if (elTestSound) {
-    elTestSound.addEventListener('click', (e) => {
-      e.preventDefault();
+  // Alarm sound picker — save and preview the chosen tone
+  if (elSoundSelect) {
+    elSoundSelect.addEventListener('change', () => {
+      saveSettings();
       playNotificationSound();
     });
   }
