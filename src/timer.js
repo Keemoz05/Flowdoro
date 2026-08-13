@@ -25,7 +25,6 @@ const SETTINGS_KEY = 'flowdoro_settings';
 const DEFAULTS = {
   workMin: 15,
   breakMin: 5,
-  sound: 'chime',
 };
 
 let state = {
@@ -50,7 +49,6 @@ const elBtnSkip     = document.getElementById('btn-skip');
 const elModeTabs    = document.querySelectorAll('.mode-tab');
 const elWorkInput   = document.getElementById('input-work-min');
 const elBreakInput  = document.getElementById('input-break-min');
-const elSoundSelect = document.getElementById('select-sound');
 
 /** Callbacks so other modules can react to timer events */
 export const timerEvents = {
@@ -70,7 +68,6 @@ function loadSettings() {
     const data = JSON.parse(raw);
     if (data.workMin) elWorkInput.value = data.workMin;
     if (data.breakMin) elBreakInput.value = data.breakMin;
-    if (data.sound && elSoundSelect) elSoundSelect.value = data.sound;
   } catch (_) {}
 }
 
@@ -78,7 +75,6 @@ function saveSettings() {
   const data = {
     workMin:  parseInt(elWorkInput.value, 10) || DEFAULTS.workMin,
     breakMin: parseInt(elBreakInput.value, 10) || DEFAULTS.breakMin,
-    sound:    elSoundSelect ? elSoundSelect.value : DEFAULTS.sound,
   };
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(data));
 }
@@ -124,56 +120,11 @@ function playChime(ctx, now) {
   });
 }
 
-/** Warm bell: fundamental plus inharmonic partials with a long decay */
-function playBell(ctx, now) {
-  const partials = [
-    { freq: 660,        gain: 0.30, dur: 1.6 },
-    { freq: 660 * 2.76, gain: 0.12, dur: 1.2 },
-    { freq: 660 * 5.40, gain: 0.05, dur: 0.8 },
-  ];
-  partials.forEach(p => {
-    const osc  = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.value = p.freq;
-    osc.type = 'sine';
-    gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(p.gain, now + 0.005);
-    gain.gain.exponentialRampToValueAtTime(0.0008, now + p.dur);
-    osc.start(now);
-    osc.stop(now + p.dur);
-  });
-}
-
-/** Soft double beep */
-function playBeep(ctx, now) {
-  [0, 0.22].forEach(offset => {
-    const osc  = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.value = 620;
-    osc.type = 'sine';
-    const start = now + offset;
-    gain.gain.setValueAtTime(0, start);
-    gain.gain.linearRampToValueAtTime(0.20, start + 0.02);
-    gain.gain.setValueAtTime(0.20, start + 0.10);
-    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.18);
-    osc.start(start);
-    osc.stop(start + 0.2);
-  });
-}
-
 function playNotificationSound() {
   try {
     const ctx = getAudioCtx();
     if (ctx.state === 'suspended') ctx.resume();
-    const now = ctx.currentTime;
-    const type = elSoundSelect ? elSoundSelect.value : DEFAULTS.sound;
-    if (type === 'bell')      playBell(ctx, now);
-    else if (type === 'beep') playBeep(ctx, now);
-    else                      playChime(ctx, now);
+    playChime(ctx, ctx.currentTime);
   } catch (_) {}
 }
 
@@ -462,18 +413,10 @@ export function initTimer() {
   elWorkInput.addEventListener('change', handleDurationChange);
   elBreakInput.addEventListener('change', handleDurationChange);
 
-  // Alarm sound picker — save and preview the chosen tone
-  if (elSoundSelect) {
-    elSoundSelect.addEventListener('change', () => {
-      saveSettings();
-      playNotificationSound();
-    });
-  }
-
   // Keyboard shortcuts
   window.addEventListener('keydown', (e) => {
-    // Ignore when typing in inputs or using the sound dropdown
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+    // Ignore when typing in inputs
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
     if (e.code === 'Space') { e.preventDefault(); toggleTimer(); }
     if (e.code === 'KeyR')  { e.preventDefault(); restartTimer(); }
