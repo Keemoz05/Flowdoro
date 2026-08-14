@@ -3,8 +3,8 @@
 <p align="center"><em>Focus in motion</em></p>
 
 <p align="center">
-  A Pomodoro timer that plays your own ambient / lo-fi video while you focus —
-  with tasks and daily progress, in one distraction-free window.
+  A Pomodoro timer that plays your own ambient or lo-fi video while you focus,
+  with task tracking and daily progress in one window.
 </p>
 
 <p align="center">
@@ -15,39 +15,42 @@
 
 ---
 
-<!--
-  DEMO GIF — replace the image below with a real 10–15s screen recording.
-  Suggested clip: start the timer → video plays → add a task → break flips the accent color.
-  Record with ScreenToGif (free, Windows), save as docs/demo.gif, then this line shows it.
--->
 <p align="center">
-  <img src="docs/demo.gif" alt="Flowdoro demo" width="720" />
+  <img src="docs/demo.gif" alt="Flowdoro demo: add a YouTube video, start the timer, add tasks, and switch to break" width="720" />
 </p>
 
 ## What it is
 
-Flowdoro is a lightweight desktop app (built with [Tauri](https://tauri.app)) that combines four focus tools in a single mosaic layout:
+Flowdoro is a small desktop app built with [Tauri](https://tauri.app). It puts four focus tools in one window:
 
-- **Pomodoro Timer** — Work/Break cycle with an SVG progress ring, auto-cycling, and keyboard shortcuts
-- **Ambient Video Player** — Loop your own local videos or YouTube URLs as a focus backdrop, with a volume slider
-- **Task Manager** — Add, complete, and delete tasks with persistent storage
-- **Daily Progress Tracker** — Focus minutes, an adjustable daily goal, streaks, and yesterday's total
+- **Pomodoro timer:** a work and break cycle with a progress ring, auto-cycling, and keyboard shortcuts
+- **Ambient video player:** loop your own local videos or YouTube links behind the timer, with a volume slider
+- **Task manager:** add, complete, and delete tasks that stay saved between sessions
+- **Daily progress:** focus minutes, an adjustable daily goal, streaks, and yesterday's total
 
 ## Features
 
 - Customizable work/break durations and a choice of alarm sounds (chime, bell, soft beep)
-- Ambient video syncs with the timer — plays when you work, pauses when you stop
-- Video library with up to 8 slots (local files + YouTube URLs)
+- Ambient video syncs with the timer, so it plays when you work and pauses when you stop
+- Video library with up to 8 slots (local files and YouTube links)
 - Native desktop notification when a session ends
-- Keyboard shortcuts: `Space` (play/pause), `R` (restart), `S` (skip)
+- Keyboard-first controls, so you can run the timer without the mouse
 - First-run guided tour
+
+## Keyboard shortcuts
+
+| Key | Action |
+| --- | --- |
+| `Space` | Play / pause the timer |
+| `R` | Restart the current session |
+| `S` | Skip to the next session, work or break |
 
 ## Download & install (Windows)
 
 1. Grab the latest **`.exe`** (or `.msi`) from the [**Releases**](https://github.com/Keemoz05/Flowdoro/releases/latest) page.
-2. Run it. Because Flowdoro isn't code-signed yet, Windows SmartScreen may show
-   **"Windows protected your PC."** This is expected for indie apps — click
-   **More info → Run anyway** to continue.
+2. Run it. Flowdoro isn't code-signed yet, so Windows SmartScreen may show
+   **"Windows protected your PC."** This is normal for small indie apps. Click
+   **More info**, then **Run anyway** to continue.
 
 > Requires Windows 10/11. The installer bundles the WebView2 runtime if it isn't already present.
 
