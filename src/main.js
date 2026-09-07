@@ -9,6 +9,7 @@ import { initTodos } from './todos.js';
 import { initVideo, playVideo, pauseVideo } from './video.js';
 import { initProgress } from './progress.js';
 import { initOnboarding } from './onboarding.js';
+import { initUpdater } from './updater.js';
 
 window.addEventListener('DOMContentLoaded', async () => {
   // ── Initialize each module ──
@@ -17,6 +18,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   initProgress();
   await initVideo();
   initOnboarding();
+  initUpdater();
 
   // ── Connect timer events to video playback ──
   timerEvents.onStart = () => {

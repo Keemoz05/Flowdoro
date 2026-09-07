@@ -121,6 +121,17 @@
           <!-- Timer Panel -->
           <aside id="timer-panel" aria-label="Pomodoro Timer">
 
+          <!-- Top-right corner: About Flowdoro & Updates Button -->
+          <button id="btn-open-about" class="btn-top-corner" aria-label="About Flowdoro and check for updates" title="About Flowdoro & Updates">
+            <svg class="top-corner-icon" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            <span class="top-corner-version">v2.0.0</span>
+            <span id="update-badge-dot" class="update-badge-dot hidden" title="Update available!"></span>
+          </button>
+
           <!-- Mode tabs: Work / Break -->
           <div id="mode-tabs" role="tablist">
             <button class="mode-tab active" id="tab-work" role="tab" data-mode="work">Work</button>
@@ -229,6 +240,106 @@
     
 
     <script type="module" src="/main.js"></script>
+
+    <!-- About & Updates Modal (Option A) -->
+    <div id="about-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="about-modal-title">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <div class="modal-app-logo">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+            </div>
+            <div>
+              <h3 id="about-modal-title">Flowdoro</h3>
+              <span class="modal-version-sub">Installed: <strong id="modal-current-version">v2.0.0</strong></span>
+            </div>
+          </div>
+          <button id="btn-close-about-modal" class="btn-modal-close" aria-label="Close about modal">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <!-- Status Card -->
+          <div id="update-status-card" class="update-status-card">
+            <div id="update-status-icon" class="update-status-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 16v-4"/>
+                <path d="M12 8h.01"/>
+              </svg>
+            </div>
+            <div class="update-status-info">
+              <div id="update-status-title" class="update-status-title">Check for updates</div>
+              <div id="update-status-desc" class="update-status-desc">Click "Check for Updates" to fetch the latest release from GitHub.</div>
+            </div>
+          </div>
+
+          <!-- In-App Download Progress Card (Smooth Flow) -->
+          <div id="download-progress-card" class="download-progress-card hidden">
+            <div class="download-progress-header">
+              <span id="download-status-text">Downloading update…</span>
+              <span id="download-percent-text">0%</span>
+            </div>
+            <div class="download-progress-track">
+              <div id="download-progress-fill" class="download-progress-fill" style="width: 0%;"></div>
+            </div>
+            <div class="download-progress-sub">
+              <span id="download-size-text">0 MB / 0 MB</span>
+            </div>
+          </div>
+
+          <!-- Update Details Box -->
+          <div id="update-details" class="update-details hidden">
+            <div class="update-release-meta">
+              <div class="update-tag-row">
+                <span id="update-new-tag" class="badge badge--work">v2.1.0</span>
+                <span id="update-release-date" class="update-release-date"></span>
+              </div>
+              <div id="update-asset-name" class="update-asset-name"></div>
+            </div>
+            <div class="update-changelog-wrap">
+              <span class="update-changelog-title">Release Notes</span>
+              <div id="update-changelog-body" class="update-changelog-body"></div>
+            </div>
+          </div>
+
+          <!-- Storage safety guarantee notice -->
+          <div class="storage-notice">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            <span>Your ambient tracks, video library, and progress are preserved.</span>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <div class="modal-footer-left">
+            <button id="btn-check-update" class="ctrl-btn ctrl-btn--primary">
+              <svg class="icon-refresh" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+              </svg>
+              <span id="btn-check-update-text">Check for Updates</span>
+            </button>
+            <button id="btn-download-update" class="ctrl-btn ctrl-btn--accent hidden">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              <span id="btn-download-text">Download & Update</span>
+            </button>
+          </div>
+          <div class="modal-footer-right">
+            <a id="btn-view-release" href="#" class="modal-link hidden">Release Notes</a>
+            <a id="btn-view-github" href="https://github.com/Keemoz05/Flowdoro" class="modal-link">GitHub</a>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Onboarding spotlight tour (shown once on first launch) -->
     <div id="onboarding-overlay" class="hidden" aria-live="polite">

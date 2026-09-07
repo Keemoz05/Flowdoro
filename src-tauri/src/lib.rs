@@ -78,9 +78,16 @@ fn get_video_library_path(app: tauri::AppHandle) -> Result<String, String> {
         .ok_or("Path contains invalid UTF-8".to_string())
 }
 
+/// Seamlessly relaunch the application after an update has been applied
+#[tauri::command]
+fn relaunch_app(app: tauri::AppHandle) {
+    app.restart();
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
@@ -89,6 +96,7 @@ pub fn run() {
             copy_video_to_library,
             delete_video_from_library,
             get_video_library_path,
+            relaunch_app,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
