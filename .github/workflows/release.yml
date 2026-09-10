@@ -44,6 +44,10 @@ jobs:
       - name: Install Node dependencies
         run: npm install
 
+      # 5b. Automatically sync version in tauri.conf.json & Cargo.toml from the Git Tag
+      - name: Sync version from Git Tag
+        run: node scripts/sync-version.js ${{ github.ref_name }}
+
       # 6. Build Tauri App & Publish Release with updater artifacts (latest.json, .sig, .exe, .msi)
       - name: Build and Release Tauri App
         uses: tauri-apps/tauri-action@v0

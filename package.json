@@ -1,10 +1,15 @@
 {
   "name": "flowdoro",
   "private": true,
-  "version": "2.4.2",
+  "version": "2.4.3",
   "type": "module",
   "scripts": {
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "version": "node scripts/sync-version.js && git add -A",
+    "bump:patch": "npm version patch",
+    "bump:minor": "npm version minor",
+    "bump:major": "npm version major",
+    "release": "npm version patch && git push --follow-tags"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2"

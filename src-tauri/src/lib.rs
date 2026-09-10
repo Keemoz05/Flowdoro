@@ -84,6 +84,12 @@ fn relaunch_app(app: tauri::AppHandle) {
     app.restart();
 }
 
+/// Returns the current application version as defined in Cargo.toml / tauri.conf.json
+#[tauri::command]
+fn get_app_version(app: tauri::AppHandle) -> String {
+    app.package_info().version.to_string()
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -97,6 +103,7 @@ pub fn run() {
             delete_video_from_library,
             get_video_library_path,
             relaunch_app,
+            get_app_version,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

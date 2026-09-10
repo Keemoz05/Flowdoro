@@ -18,7 +18,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   initProgress();
   await initVideo();
   initOnboarding();
-  initUpdater();
+  await initUpdater();
 
   // ── Connect timer events to video playback ──
   timerEvents.onStart = () => {

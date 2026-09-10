@@ -11,9 +11,48 @@ const REPO_NAME = 'Flowdoro';
 const GITHUB_API_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest`;
 const GITHUB_RELEASES_PAGE = `https://github.com/${REPO_OWNER}/${REPO_NAME}/releases`;
 
-// Current version of Flowdoro (v2.4)
-export const APP_VERSION = '2.4.0';
-export const DISPLAY_VERSION = '2.4';
+// Fallback version if running outside Tauri
+export let APP_VERSION = '2.4.3';
+export let DISPLAY_VERSION = APP_VERSION;
+
+let versionLoaded = false;
+
+/**
+ * Fetch dynamic app version from Tauri runtime (single source of truth)
+ */
+export async function getAppVersion() {
+  if (!versionLoaded && window.__TAURI__?.core?.invoke) {
+    try {
+      const ver = await window.__TAURI__.core.invoke('get_app_version');
+      if (ver) {
+        APP_VERSION = ver;
+        DISPLAY_VERSION = ver;
+        versionLoaded = true;
+      }
+    } catch (err) {
+      console.warn('Could not read version from Tauri runtime:', err);
+    }
+  }
+  updateVersionUI();
+  return APP_VERSION;
+}
+
+/**
+ * Update UI elements that display version info
+ */
+export function updateVersionUI() {
+  const modalCurrentVersion = document.getElementById('modal-current-version');
+  const btnOpenAbout = document.getElementById('btn-open-about');
+
+  if (modalCurrentVersion) {
+    modalCurrentVersion.textContent = DISPLAY_VERSION ? `v${DISPLAY_VERSION}` : '';
+  }
+  if (btnOpenAbout) {
+    btnOpenAbout.title = DISPLAY_VERSION
+      ? `Flowdoro v${DISPLAY_VERSION} — About & Updates`
+      : 'Flowdoro — About & Updates';
+  }
+}
 
 // ── State ──
 let isChecking = false;
@@ -343,6 +382,8 @@ export async function checkForUpdates(manual = false) {
   if (isChecking) return;
   isChecking = true;
 
+  await getAppVersion();
+
   const btnCheck = document.getElementById('btn-check-update');
   const btnCheckText = document.getElementById('btn-check-update-text');
   const statusIcon = document.getElementById('update-status-icon');
@@ -524,9 +565,10 @@ export async function checkForUpdates(manual = false) {
 //  Modal Management & Initialization
 // ─────────────────────────────────────────────────────
 
-export function openAboutModal() {
+export async function openAboutModal() {
   const modal = document.getElementById('about-modal');
   if (!modal) return;
+  await getAppVersion();
   modal.classList.remove('hidden');
 }
 
@@ -536,17 +578,16 @@ export function closeAboutModal() {
   modal.classList.add('hidden');
 }
 
-export function initUpdater() {
+export async function initUpdater() {
+  await getAppVersion();
+
   const btnOpenAbout = document.getElementById('btn-open-about');
   const btnCloseAbout = document.getElementById('btn-close-about-modal');
   const modal = document.getElementById('about-modal');
   const btnCheck = document.getElementById('btn-check-update');
   const btnGithub = document.getElementById('btn-view-github');
-  const modalCurrentVersion = document.getElementById('modal-current-version');
 
-  if (modalCurrentVersion) {
-    modalCurrentVersion.textContent = `v${DISPLAY_VERSION}`;
-  }
+  updateVersionUI();
 
   // Trigger button opens modal
   if (btnOpenAbout) {
