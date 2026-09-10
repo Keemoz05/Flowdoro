@@ -1708,7 +1708,7 @@ body.mode-break #ring-progress {
 /* ── Modal Card ── */
 .modal-card {
   width: 90%;
-  max-width: 440px;
+  max-width: 510px;
   max-height: 85vh;
   display: flex;
   flex-direction: column;
@@ -2017,6 +2017,7 @@ body.mode-break #ring-progress {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
   padding: 12px 18px;
   border-top: 1px solid var(--color-border);
   background: var(--color-surface-2);
@@ -2026,25 +2027,30 @@ body.mode-break #ring-progress {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 .modal-footer-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .modal-link {
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 500;
   color: var(--color-text-secondary);
   text-decoration: none;
   cursor: pointer;
+  white-space: nowrap;
   transition: color var(--transition-fast);
 }
 
 .modal-link:hover {
-  color: var(--color-accent);
+  color: #ffffff;
+  text-decoration: underline;
 }
 
 .modal-link.hidden {
@@ -2056,14 +2062,14 @@ body.mode-break #ring-progress {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  padding: 8px 14px;
+  gap: 6px;
+  padding: 7px 12px;
   background: var(--color-accent);
   color: #fff;
   border: none;
   border-radius: var(--radius-sm);
   font-family: var(--font-sans);
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
   line-height: 1;
   white-space: nowrap;
@@ -2103,14 +2109,14 @@ body.mode-break #ring-progress {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  padding: 8px 14px;
+  gap: 6px;
+  padding: 7px 12px;
   background: var(--color-break);
   color: #0b0f19;
   border: none;
   border-radius: var(--radius-sm);
   font-family: var(--font-sans);
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
   line-height: 1;
   white-space: nowrap;

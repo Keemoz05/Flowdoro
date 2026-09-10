@@ -44,23 +44,16 @@ jobs:
       - name: Install Node dependencies
         run: npm install
 
-      # 6. Build the Tauri app
-      - name: Build Tauri app
-        run: npx tauri build
+      # 6. Build Tauri App & Publish Release with updater artifacts (latest.json, .sig, .exe, .msi)
+      - name: Build and Release Tauri App
+        uses: tauri-apps/tauri-action@v0
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-
-      # 7. Upload the installers and updater artifacts to GitHub Release
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
         with:
-          files: |
-            src-tauri/target/release/bundle/nsis/*.exe
-            src-tauri/target/release/bundle/nsis/*.nsis.zip
-            src-tauri/target/release/bundle/nsis/*.nsis.zip.sig
-            src-tauri/target/release/bundle/msi/*.msi
-            src-tauri/target/release/bundle/**/latest.json
-          generate_release_notes: true
-          draft: false
+          tagName: ${{ github.ref_name }}
+          releaseName: 'Flowdoro ${{ github.ref_name }}'
+          releaseBody: 'See the release assets below.'
+          releaseDraft: false
           prerelease: false
