@@ -11,8 +11,9 @@ const REPO_NAME = 'Flowdoro';
 const GITHUB_API_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest`;
 const GITHUB_RELEASES_PAGE = `https://github.com/${REPO_OWNER}/${REPO_NAME}/releases`;
 
-// Current version of Flowdoro
-export const APP_VERSION = '2.0.0';
+// Current version of Flowdoro (v2.4)
+export const APP_VERSION = '2.4.0';
+export const DISPLAY_VERSION = '2.4';
 
 // ── State ──
 let isChecking = false;
@@ -284,7 +285,10 @@ function handleNativeUpdate(update) {
   if (assetNameEl) assetNameEl.textContent = 'Silent in-place update (Tauri Native)';
   if (changelogEl) changelogEl.innerHTML = renderMarkdown(update.body);
   if (detailsBox) detailsBox.classList.remove('hidden');
-  if (badgeDot) badgeDot.classList.remove('hidden');
+  if (badgeDot) {
+    badgeDot.classList.add('has-update');
+    badgeDot.title = `Update available: v${update.version}`;
+  }
 
   if (btnDownload) {
     btnDownload.classList.remove('hidden');
@@ -355,7 +359,10 @@ export async function checkForUpdates(manual = false) {
   const badgeDot = document.getElementById('update-badge-dot');
 
   // Set checking UI state
-  if (btnCheck) btnCheck.disabled = true;
+  if (btnCheck) {
+    btnCheck.disabled = true;
+    btnCheck.classList.add('is-checking');
+  }
   if (btnCheckText) btnCheckText.textContent = 'Checking…';
   if (statusIcon) {
     statusIcon.innerHTML = `
@@ -398,12 +405,15 @@ export async function checkForUpdates(manual = false) {
       }
       if (statusTitle) statusTitle.textContent = 'You are on the latest version';
       if (statusDesc) {
-        statusDesc.textContent = `Flowdoro v${APP_VERSION} is current. No newer public releases were found.`;
+        statusDesc.textContent = `Flowdoro v${DISPLAY_VERSION} is current. No newer public releases were found.`;
       }
       if (detailsBox) detailsBox.classList.add('hidden');
       if (btnDownload) btnDownload.classList.add('hidden');
       if (btnViewRelease) btnViewRelease.classList.add('hidden');
-      if (badgeDot) badgeDot.classList.add('hidden');
+      if (badgeDot) {
+        badgeDot.classList.remove('has-update');
+        badgeDot.title = `Flowdoro v${DISPLAY_VERSION}`;
+      }
       return;
     }
 
@@ -474,7 +484,10 @@ export async function checkForUpdates(manual = false) {
       }
 
       // Show indicator dot in main UI
-      if (badgeDot) badgeDot.classList.remove('hidden');
+      if (badgeDot) {
+        badgeDot.classList.add('has-update');
+        badgeDot.title = `Update available: ${latestTag}`;
+      }
     } else {
       // Up to date!
       if (statusIcon) {
@@ -487,12 +500,15 @@ export async function checkForUpdates(manual = false) {
       }
       if (statusTitle) statusTitle.textContent = 'Flowdoro is up to date';
       if (statusDesc) {
-        statusDesc.textContent = `You are running version v${APP_VERSION}, which is the latest version available.`;
+        statusDesc.textContent = `You are running version v${DISPLAY_VERSION}, which is the latest version available.`;
       }
       if (detailsBox) detailsBox.classList.add('hidden');
       if (btnDownload) btnDownload.classList.add('hidden');
       if (btnViewRelease) btnViewRelease.classList.add('hidden');
-      if (badgeDot) badgeDot.classList.add('hidden');
+      if (badgeDot) {
+        badgeDot.classList.remove('has-update');
+        badgeDot.title = `Flowdoro v${DISPLAY_VERSION}`;
+      }
     }
   } catch (err) {
     console.warn('Failed to check for updates:', err);
@@ -516,7 +532,10 @@ export async function checkForUpdates(manual = false) {
     if (btnViewRelease) btnViewRelease.classList.add('hidden');
   } finally {
     isChecking = false;
-    if (btnCheck) btnCheck.disabled = false;
+    if (btnCheck) {
+      btnCheck.disabled = false;
+      btnCheck.classList.remove('is-checking');
+    }
     if (btnCheckText) btnCheckText.textContent = 'Check for Updates';
   }
 }
@@ -543,6 +562,11 @@ export function initUpdater() {
   const modal = document.getElementById('about-modal');
   const btnCheck = document.getElementById('btn-check-update');
   const btnGithub = document.getElementById('btn-view-github');
+  const modalCurrentVersion = document.getElementById('modal-current-version');
+
+  if (modalCurrentVersion) {
+    modalCurrentVersion.textContent = `v${DISPLAY_VERSION}`;
+  }
 
   // Trigger button opens modal
   if (btnOpenAbout) {
