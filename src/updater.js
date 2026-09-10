@@ -256,7 +256,6 @@ function handleNativeUpdate(update) {
   const detailsBox = document.getElementById('update-details');
   const btnDownload = document.getElementById('btn-download-update');
   const btnDownloadText = document.getElementById('btn-download-text');
-  const badgeDot = document.getElementById('update-badge-dot');
   const newTagEl = document.getElementById('update-new-tag');
   const dateEl = document.getElementById('update-release-date');
   const assetNameEl = document.getElementById('update-asset-name');
@@ -285,10 +284,6 @@ function handleNativeUpdate(update) {
   if (assetNameEl) assetNameEl.textContent = 'Silent in-place update (Tauri Native)';
   if (changelogEl) changelogEl.innerHTML = renderMarkdown(update.body);
   if (detailsBox) detailsBox.classList.remove('hidden');
-  if (badgeDot) {
-    badgeDot.classList.add('has-update');
-    badgeDot.title = `Update available: v${update.version}`;
-  }
 
   if (btnDownload) {
     btnDownload.classList.remove('hidden');
@@ -356,7 +351,6 @@ export async function checkForUpdates(manual = false) {
   const detailsBox = document.getElementById('update-details');
   const btnDownload = document.getElementById('btn-download-update');
   const btnViewRelease = document.getElementById('btn-view-release');
-  const badgeDot = document.getElementById('update-badge-dot');
 
   // Set checking UI state
   if (btnCheck) {
@@ -410,10 +404,6 @@ export async function checkForUpdates(manual = false) {
       if (detailsBox) detailsBox.classList.add('hidden');
       if (btnDownload) btnDownload.classList.add('hidden');
       if (btnViewRelease) btnViewRelease.classList.add('hidden');
-      if (badgeDot) {
-        badgeDot.classList.remove('has-update');
-        badgeDot.title = `Flowdoro v${DISPLAY_VERSION}`;
-      }
       return;
     }
 
@@ -482,12 +472,6 @@ export async function checkForUpdates(manual = false) {
           openUrl(release.html_url || GITHUB_RELEASES_PAGE);
         };
       }
-
-      // Show indicator dot in main UI
-      if (badgeDot) {
-        badgeDot.classList.add('has-update');
-        badgeDot.title = `Update available: ${latestTag}`;
-      }
     } else {
       // Up to date!
       if (statusIcon) {
@@ -505,10 +489,6 @@ export async function checkForUpdates(manual = false) {
       if (detailsBox) detailsBox.classList.add('hidden');
       if (btnDownload) btnDownload.classList.add('hidden');
       if (btnViewRelease) btnViewRelease.classList.add('hidden');
-      if (badgeDot) {
-        badgeDot.classList.remove('has-update');
-        badgeDot.title = `Flowdoro v${DISPLAY_VERSION}`;
-      }
     }
   } catch (err) {
     console.warn('Failed to check for updates:', err);

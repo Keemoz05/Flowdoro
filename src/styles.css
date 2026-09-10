@@ -1638,7 +1638,7 @@ body.mode-break #ring-progress {
    ABOUT & UPDATES MODAL + VERSION PILL
    ════════════════════════════════════════════════════════ */
 
-/* ── Top-Right Corner Button (Single I Icon with Orange Light) ── */
+/* ── Top-Right Corner Button (Single "i" Icon) ── */
 .btn-top-corner {
   position: absolute;
   top: 12px;
@@ -1680,37 +1680,6 @@ body.mode-break #ring-progress {
 
 .btn-top-corner:hover .top-corner-icon {
   color: var(--color-text-primary);
-}
-
-/* ── Glowing Orange Light Dot ── */
-.update-badge-dot {
-  position: absolute;
-  top: 3px;
-  right: 3px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-accent);
-  box-shadow: 0 0 6px var(--color-accent);
-  animation: pulse-glow 2s infinite ease-in-out;
-  flex-shrink: 0;
-  pointer-events: none;
-}
-
-.update-badge-dot.has-update {
-  box-shadow: 0 0 8px var(--color-accent), 0 0 14px var(--color-accent-glow);
-  animation: pulse-glow 1.1s infinite ease-in-out;
-}
-
-@keyframes pulse-glow {
-  0%, 100% {
-    transform: scale(1);
-    box-shadow: 0 0 4px var(--color-accent);
-  }
-  50% {
-    transform: scale(1.3);
-    box-shadow: 0 0 10px var(--color-accent-glow);
-  }
 }
 
 /* ── Modal Overlay ── */
